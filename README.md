@@ -1,5 +1,3 @@
 # Maxi-Prime
-MPSSL
-mondongo
-mondongo 2
-
+Proyecto Maxi One
+Grupo: MaxiPrime
