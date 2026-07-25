@@ -1,3 +1,3 @@
 # Maxi-Prime
-- Proyecto Maxi One
-- Grupo: MaxiPrime
+- Proyecto Maxi-Bin
+- Grupo: Maxi Prime
