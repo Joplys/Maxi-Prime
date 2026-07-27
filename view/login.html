@@ -53,7 +53,6 @@
         alert(data.message);
 
         if (data.status === 'success') {
-          // Redirección según el rol del usuario logueado en sesión
           if (data.user && data.user.Rol === 'admin') {
             window.location.href = 'admin.html';
           } else {
