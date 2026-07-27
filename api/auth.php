@@ -1,83 +1,136 @@
 <?php
+session_start();
+
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: GET, POST");
 
-require 'db.php';
+if (!isset($_SESSION['usuarios'])) {
+    $_SESSION['next_user_id'] = 1;
+    $_SESSION['usuarios'] = [
+        [
+            "ID_US" => $_SESSION['next_user_id']++,
+            "Nombre" => "Administrador",
+            "Email" => "admin@test.com",
+            "Contrasena" => "123456",
+            "Rol" => "admin"
+        ],
+        [
+            "ID_US" => $_SESSION['next_user_id']++,
+            "Nombre" => "Vecino Ejemplo",
+            "Email" => "vecino@test.com",
+            "Contrasena" => "123456",
+            "Rol" => "vecino"
+        ]
+    ];
+}
 
-$data = json_decode(file_get_contents("php://input"));
+$rawInput = file_get_contents("php://input");
+$data = json_decode($rawInput, true);
 
-$action = $data->action ?? $_GET['action'] ?? null;
+$action = $data['action'] ?? $_GET['action'] ?? null;
 
 if (!$action) {
-    echo json_encode(["status" => "error", "message" => "Debes especificar una acción ('register' o 'login')."]);
+    echo json_encode([
+        "status" => "error", 
+        "message" => "Acción no especificada. Acciones disponibles: login, register, check_session"
+    ]);
     exit;
 }
 
 switch ($action) {
-    case 'register':
-        handleRegister($pdo, $data);
-        break;
 
     case 'login':
-        handleLogin($pdo, $data);
+        $email = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
+
+        if (empty($email) || empty($password)) {
+            echo json_encode(["status" => "error", "message" => "Completa email y contraseña."]);
+            exit;
+        }
+
+        $usuarioEncontrado = null;
+
+        foreach ($_SESSION['usuarios'] as $user) {
+            if (strtolower($user['Email']) === strtolower($email) && $user['Contrasena'] === $password) {
+                $usuarioEncontrado = $user;
+                break;
+            }
+        }
+
+        if ($usuarioEncontrado) {
+            $_SESSION['user_logged_in'] = [
+                "ID_US" => $usuarioEncontrado['ID_US'],
+                "Nombre" => $usuarioEncontrado['Nombre'],
+                "Email" => $usuarioEncontrado['Email'],
+                "Rol" => $usuarioEncontrado['Rol'] ?? 'vecino'
+            ];
+
+            echo json_encode([
+                "status" => "success",
+                "message" => "¡Inicio de sesión exitoso!",
+                "user" => $_SESSION['user_logged_in']
+            ]);
+        } else {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Credenciales incorrectas o usuario no registrado."
+            ]);
+        }
+        break;
+
+    case 'register':
+        $nombre = trim($data['username'] ?? $data['nombre'] ?? '');
+        $email = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
+
+        if (empty($nombre) || empty($email) || empty($password)) {
+            echo json_encode(["status" => "error", "message" => "Todos los campos son obligatorios."]);
+            exit;
+        }
+
+        foreach ($_SESSION['usuarios'] as $user) {
+            if (strtolower($user['Email']) === strtolower($email)) {
+                echo json_encode(["status" => "error", "message" => "El correo ya está registrado."]);
+                exit;
+            }
+        }
+
+        $nuevoUsuario = [
+            "ID_US" => $_SESSION['next_user_id']++,
+            "Nombre" => $nombre,
+            "Email" => $email,
+            "Contrasena" => $password,
+            "Rol" => "vecino",
+            "Fecha_Registro" => date('Y-m-d')
+        ];
+
+        $_SESSION['usuarios'][] = $nuevoUsuario;
+
+        echo json_encode([
+            "status" => "success",
+            "message" => "Registro exitoso. Ya puedes iniciar sesión."
+        ]);
+        break;
+
+    case 'check_session':
+        if (isset($_SESSION['user_logged_in'])) {
+            echo json_encode([
+                "status" => "success",
+                "logged_in" => true,
+                "user" => $_SESSION['user_logged_in']
+            ]);
+        } else {
+            echo json_encode([
+                "status" => "success",
+                "logged_in" => false
+            ]);
+        }
         break;
 
     default:
         echo json_encode(["status" => "error", "message" => "Acción no válida."]);
         break;
-}
-
-function handleRegister($pdo, $data) {
-    if (!empty($data->username) && !empty($data->email) && !empty($data->password)) {
-        $nombre = $data->username;
-        $email = $data->email;
-        $fecha_registro = date('Y-m-d');
-        $contrasena_hash = password_hash($data->password, PASSWORD_DEFAULT);
-
-        $sql = "INSERT INTO U_Vecino (Nombre, Email, Fecha_Registro, Contrasena) 
-                VALUES (:nombre, :email, :fecha, :contrasena)";
-        $stmt = $pdo->prepare($sql);
-
-        try {
-            $stmt->execute([
-                ':nombre' => $nombre,
-                ':email' => $email,
-                ':fecha' => $fecha_registro,
-                ':contrasena' => $contrasena_hash
-            ]);
-            echo json_encode(["status" => "success", "message" => "¡Cuenta creada con éxito!"]);
-        } catch (PDOException $e) {
-            echo json_encode(["status" => "error", "message" => "Error al registrar. Es probable que el correo ya esté en uso."]);
-        }
-    } else {
-        echo json_encode(["status" => "error", "message" => "Completa todos los campos (username, email, password)."]);
-    }
-}
-
-function handleLogin($pdo, $data) {
-    if (!empty($data->email) && !empty($data->password)) {
-        $email = $data->email;
-        $password = $data->password;
-
-        $sql = "SELECT ID_US, Nombre, Contrasena FROM U_Vecino WHERE Email = :email";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['Contrasena'])) {
-            echo json_encode([
-                "status" => "success",
-                "message" => "¡Bienvenido de nuevo, " . $user['Nombre'] . "!",
-                "user_id" => $user['ID_US'],
-                "username" => $user['Nombre']
-            ]);
-        } else {
-            echo json_encode(["status" => "error", "message" => "Correo o contraseña incorrectos."]);
-        }
-    } else {
-        echo json_encode(["status" => "error", "message" => "Completa todos los campos (email, password)."]);
-    }
 }
 ?>
