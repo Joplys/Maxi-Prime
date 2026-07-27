@@ -187,8 +187,57 @@
 
   <hr>
 
-  <script>
-    const API_URL = 'gestion.php';
+<script>
+    const API_GESTION = '/Maxi-Prime/api/admin_gestion.php';
+    const API_AUTH = '/Maxi-Prime/api/auth.php';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch(API_AUTH + '?action=check_session')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.logged_in) {
+            document.getElementById('sessionStatus').innerText = `${data.user.Nombre} (${data.user.Rol})`;
+            cargarElementos();
+            cargarUsuarios();
+          } else {
+            alert('Debes iniciar sesión primero.');
+            window.location.href = 'login.html';
+          }
+        })
+        .catch(() => {
+          document.getElementById('sessionStatus').innerText = 'Modo Local / Sin sesión activa';
+          cargarElementos();
+          cargarUsuarios();
+        });
+    });
+
+    function cerrarSesion() {
+      fetch(API_AUTH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout' })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        window.location.href = 'login.html';
+      });
+    }
+
+    function reiniciarSesion() {
+      if (!confirm('¿Seguro que deseas borrar todos los datos temporales de la sesión?')) return;
+      fetch(API_GESTION, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset_session' })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        cargarElementos();
+        cargarUsuarios();
+      });
+    }
 
     function cambiarCamposElemento() {
       const tipo = document.getElementById('elem_tipo').value;
@@ -204,7 +253,7 @@
     }
 
     function cargarElementos() {
-      fetch(API_URL + '?action=list_elements')
+      fetch(API_GESTION + '?action=list_elements')
         .then(res => res.json())
         .then(res => {
           const tbody = document.querySelector('#tablaElementos tbody');
@@ -242,7 +291,7 @@
               tbody.appendChild(tr);
             });
           } else {
-            tbody.innerHTML = '<tr><td colspan="5">No hay elementos creados.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5">No hay elementos creados en la sesión.</td></tr>';
           }
         });
     }
@@ -265,11 +314,9 @@
       } else if (tipo === 'flota') {
         payload.matricula = document.getElementById('flota_matricula').value;
         payload.tipo_vehiculo = document.getElementById('flota_tipo_vehiculo').value;
-        payload.res_recolector = document.getElementById('flota_res_recolector').value;
-        payload.id_taller = document.getElementById('flota_id_taller').value || null;
       }
 
-      fetch(API_URL, {
+      fetch(API_GESTION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -284,7 +331,7 @@
     function eliminarElemento(id) {
       if (!confirm(`¿Borrar elemento ID ${id}?`)) return;
 
-      fetch(API_URL, {
+      fetch(API_GESTION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete_element', id_elemento: id })
@@ -297,7 +344,7 @@
     }
 
     function cargarUsuarios() {
-      fetch(API_URL + '?action=list_users')
+      fetch(API_GESTION + '?action=list_users')
         .then(res => res.json())
         .then(res => {
           const tbody = document.querySelector('#tablaUsuarios tbody');
@@ -317,13 +364,13 @@
                 <td>${us.Rol}</td>
                 <td>${asig}</td>
                 <td>
-                  <button onclick="eliminarUsuario(${us.ID_US}, '${us.Rol}')">Borrar</button>
+                  <button onclick="eliminarUsuario(${us.ID_US})">Borrar</button>
                 </td>
               `;
               tbody.appendChild(tr);
             });
           } else {
-            tbody.innerHTML = '<tr><td colspan="6">No hay usuarios.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6">No hay usuarios registrados en la sesión.</td></tr>';
           }
         });
     }
@@ -345,7 +392,7 @@
         payload.flota_asign = document.getElementById('us_flota_asign').value || null;
       }
 
-      fetch(API_URL, {
+      fetch(API_GESTION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -357,13 +404,13 @@
       });
     }
 
-    function eliminarUsuario(id, rol) {
-      if (!confirm(`¿Borrar usuario ID ${id} (${rol})?`)) return;
+    function eliminarUsuario(id) {
+      if (!confirm(`¿Borrar usuario ID ${id}?`)) return;
 
-      fetch(API_URL, {
+      fetch(API_GESTION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_user', id_us: id, rol: rol })
+        body: JSON.stringify({ action: 'delete_user', id_us: id })
       })
       .then(res => res.json())
       .then(data => {
