@@ -24,11 +24,11 @@
 
     <p class="link">No tienes cuenta? <a href="register.html">Registrate</a></p>
   </div>
-  <script>
+<script>
     document.getElementById('btnLogin').addEventListener('click', function(e) {
       e.preventDefault();
 
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
       if (!email || !password) {
@@ -36,6 +36,7 @@
         return;
       }
 
+      // Petición POST a la API de sesión auth.php
       fetch('auth.php', {
         method: 'POST',
         headers: {
@@ -50,8 +51,14 @@
       .then(response => response.json())
       .then(data => {
         alert(data.message);
+
         if (data.status === 'success') {
-	window.location.href = 'paginamapa.html';
+          // Redirección según el rol del usuario logueado en sesión
+          if (data.user && data.user.Rol === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'paginamapa.html';
+          }
         }
       })
       .catch(error => {
