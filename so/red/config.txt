@@ -1,0 +1,109 @@
+Configuración router c7200
+enable
+configure terminal
+hostname Router
+interface FastEthernet0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+exit
+ip routing
+ip route 192.168.10.0 255.255.255.0 192.168.1.2
+end
+write memory
+Configuración servidor firewall
+#WAN interfaz ens3
+sudo nmcli con add \
+type ethernet \
+ifname ens3 \
+con-name WAN \
+ipv4.method manual \
+ipv4.addresses 192.168.1.2/24 \
+ipv4.gateway 192.168.1.1 \
+ipv4.dns 8.8.8.8
+sudo nmcli con up WAN
+#LAN interfaz ens4
+sudo nmcli con add \
+type ethernet \
+ifname ens4 \
+con-name LAN \
+ipv4.method manual \
+ipv4.addresses 192.168.10.1/24
+sudo nmcli con up LAN
+#Habilitar enrutamiento
+echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/firewall.conf
+sudo sysctl --system
+#Firewall
+sudo firewall-cmd --permanent --zone=external --change-interface=ens3
+sudo firewall-cmd --permanent --zone=internal --change-interface=ens4
+sudo firewall-cmd --permanent --zone=external --add-masquerade
+sudo firewall-cmd --permanent --zone=internal
+#Enrutar http y https hacia el servidor
+sudo firewall-cmd --permanent \
+--add-forward-port=port=80:proto=tcp:toaddr=192.168.10.10:toport=80
+sudo firewall-cmd --permanent \
+--add-forward-port=port=443:proto=tcp:toaddr=192.168.10.10:toport=443
+#Habilitar ssh puerto 32487
+sudo firewall-cmd --permanent --add-port=32487/tcp
+sudo firewall-cmd --reload
+#Configurar SElinux para permitir el puerto 32487
+sudo semanage port -a -t ssh_port_t -p tcp 32487
+#Configurar ssh para que utilice dicho puerto
+echo "Port 32487" | sudo tee /etc/ssh/sshd_config.d/port.conf
+sudo systemctl restart sshd
+Configuración servidor web
+sudo nmcli con add \
+type ethernet \
+ifname ens3 \
+con-name LAN \
+ipv4.method manual \
+ipv4.addresses 192.168.10.10/24 \
+ipv4.gateway 192.168.10.1
+sudo nmcli con up LAN
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+#Habilitar puerto 1221 para ssh
+sudo firewall-cmd --permanent --add-port=1221/tcp
+sudo firewall-cmd --reload
+#Configurar SElinux para permitir el puerto 1221
+sudo semanage port -a -t ssh_port_t -p tcp 1221
+#Configurar ssh para que utilice dicho puerto
+echo "Port 1221" | sudo tee /etc/ssh/sshd_config.d/port.conf
+sudo systemctl restart sshd
+Servidor Base de Datos
+sudo nmcli con add \
+type ethernet \
+ifname ens3 \
+con-name LAN \
+ipv4.method manual \
+ipv4.addresses 192.168.10.20/24 \
+ipv4.gateway 192.168.10.1
+sudo nmcli con up LAN
+#Habilitar puerto 3306 para mysql y 1221 para ssh
+sudo firewall-cmd --permanent --add-port=3306/tcp
+sudo firewall-cmd --permanent --add-port=1221/tcp
+sudo firewall-cmd --reload
+#Configurar SElinux para permitir el puerto 1221
+sudo semanage port -a -t ssh_port_t -p tcp 1221
+#Configurar ssh para que utilice dicho puerto
+echo "Port 1221" | sudo tee /etc/ssh/sshd_config.d/port.conf
+sudo systemctl restart sshd
+Servidor de Respaldos
+sudo nmcli con add \
+type ethernet \
+ifname ens3 \
+con-name LAN \
+ipv4.method manual \
+ipv4.addresses 192.168.10.30/24 \
+ipv4.gateway 192.168.10.1
+sudo nmcli con up LAN
+#Habilitar puerto 1221 para ssh
+sudo firewall-cmd \
+--permanent \
+--add-port=1221/tcp
+sudo firewall-cmd --reload
+#Configurar SElinux para permitir el puerto 1221
+sudo semanage port -a -t ssh_port_t -p tcp 1221
+#Configurar ssh para que utilice dicho puerto
+echo "Port 1221" | sudo tee /etc/ssh/sshd_config.d/port.conf
+sudo systemctl restart sshd
+

@@ -1,0 +1,14 @@
+
+# Configuración router c7200
+
+enable
+configure terminal
+hostname Router
+interface FastEthernet0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+exit
+ip routing
+ip route 192.168.10.0 255.255.255.0 192.168.1.2
+end
+write memory
