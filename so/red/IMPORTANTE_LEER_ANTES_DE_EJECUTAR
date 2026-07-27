@@ -1,0 +1,5 @@
+Antes de ejecutar cualquier script, cambiar los nombres
+de las interfaces de cada servidor en los scripts. 
+Fijese ejecutando:
+
+ip addr
