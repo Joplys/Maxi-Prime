@@ -87,7 +87,7 @@ const track = document.getElementById("panelTrack");
 const dots = document.querySelectorAll(".dot");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
-let currentView = 0; // 0 = inbox, 1 = element
+let currentView = 0;
 
 function setView(index) {
   currentView = Math.max(0, Math.min(1, index));
