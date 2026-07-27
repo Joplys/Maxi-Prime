@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maxi-bin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+
+
+  <main class="layout">
+
+    <div id="map"></div>
+
+    <aside class="panel">
+      <div class="panel-dots">
+        <span class="dot active" data-dot="inbox"></span>
+        <span class="dot" data-dot="element"></span>
+      </div>
+
+      <div class="panel-nav">
+        <button class="nav-btn" id="prevBtn" aria-label="Anterior">‹</button>
+
+        <div class="panel-viewport">
+          <div class="panel-track" id="panelTrack">
+
+            <section class="panel-view" data-view="inbox">
+              <h2>Bandeja de entrada</h2>
+              <p class="panel-sub">Informes enviados sobre los contenedores</p>
+              <ul class="inbox-list" id="inboxList"></ul>
+            </section>
+
+            <section class="panel-view" data-view="element">
+              <h2>Información del elemento</h2>
+              <div class="element-card" id="elementCard">
+                <div class="element-empty" id="elementEmpty">
+                  <span class="element-empty-icon">◍</span>
+                  Tocá un contenedor en el mapa para ver su información.
+                </div>
+
+                <div class="element-filled" id="elementFilled" hidden>
+                  <div class="element-head">
+                    <div>
+                      <div class="element-type" id="elType">—</div>
+                      <div class="element-subtype" id="elSubtype">—</div>
+                    </div>
+                    <div class="element-icon" id="elIcon">◍</div>
+                  </div>
+                  <div class="element-info">
+                    <span class="element-info-label">Estado</span>
+                    <p id="elInfo">—</p>
+                  </div>
+                  <button class="btn btn-report" id="reportBtn">Reportar incidencia</button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        <button class="nav-btn" id="nextBtn" aria-label="Siguiente">›</button>
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="informeModal">
+  <div class="modal">
+    <button class="modal-close" data-close="informeModal">×</button>
+    <div class="modal-eyebrow">Informe de incidencia</div>
+    <h3 id="informeAsunto">Asunto</h3>
+    <div class="modal-meta">
+      <span id="informeElemento">Elemento afectado: —</span>
+      <span id="informeEstado">Estado: —</span>
+      <span id="informeFecha">DD/MM/AAAA</span>
+    </div>
+    <div class="modal-body" id="informeCuerpo">—</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <button class="modal-close" data-close="reportModal">×</button>
+    <div class="modal-eyebrow">Formulario de incidencia</div>
+    <h3 id="reportAsunto">Asunto</h3>
+    <div class="modal-meta">
+      <span id="reportElemento">Elemento afectado: —</span>
+      <span id="reportFecha">DD/MM/AAAA</span>
+    </div>
+
+    <form id="reportForm">
+      <label class="field">
+        <span class="field-label">Informe</span>
+        <textarea id="reportTextarea" placeholder="Describí lo sucedido…" required></textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Evidencia</span>
+        <span class="field-hint">Adjuntá una foto o video como prueba</span>
+        <input type="file" id="evidenceInput" accept="image/*,video/*" hidden>
+        <button type="button" class="btn btn-evidence" id="evidenceBtn">Agregar imagen</button>
+        <span class="evidence-name" id="evidenceName"></span>
+      </label>
+
+      <button type="submit" class="btn btn-submit">Enviar reporte</button>
+    </form>
+
+    <div class="report-success" id="reportSuccess" hidden>
+      <span class="element-empty-icon">✓</span>
+      Reporte enviado. Gracias por avisar.
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
