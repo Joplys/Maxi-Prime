@@ -2,41 +2,64 @@
 
 require_once __DIR__ . '/db.php';
 
-$db = new Database();
-$conn = $db->getConnection();
-
 class User {
+    private $db;
+    private $conn = $db->getConnection();
 
-    /* CREATE TABLE Usuarios ( */
-    /* ID_Usuario INT AUTO_INCREMENT PRIMARY KEY, */
-    /* Nombre VARCHAR(50) NOT NULL, */
-    /* Correo_Electronico VARCHAR(100) NOT NULL, */
-    /* Contrasena VARCHAR(255) NOT NULL, */
-    /* Fecha_Registro DATE */
-    /* ); */
+    public function createUser($type, $data) { 
 
-    // Utilize estos nombres en este orden por dos motivos:
-    //
-    // 1- claridad, ya que si utilizace solo "$miclase->create()", podria dar
-    // lugar a confusion con otras clases que operen con crud
-    //
-    // 2- create, read, update y delete forman las siglas crud,
-    // lo cual mantiene consistencia, osea imaginate que ponga
-    // modify y en otra clase ponga q se yo alter
+        try {
+            $this->conn->beginTransaction();
 
-    public function createUser($name, $email, $password) {
+            $stmt = $this->conn->prepare("
+            INSERT INTO Usuarios(Nombre, Correo_Electronico, Contrasena)
+            VALUES (?,?,?);
+            ");
 
+            $stmt->bindParam(1, $data['nombre']);
+            $stmt->bindParam(2, $data['correo']);
+            $stmt->bindParam(3, $data['contrasena']);
+
+            $stmt->execute();
+
+            $idUsuario = $this->conn->lastInsertId();
+
+            switch($type) {
+            case "admin":
+                $stmt = $this->conn->prepare("
+                INSERT INTO U_Administrativo(ID_Usuario)
+                VALUES (?)
+                ");
+
+                $stmt->bindParam(1, $idUsuario);
+
+                $stmt->execute();
+            break;
+            case "vecino":
+            break;
+            case "gestor":
+            break;
+            case "camionero":
+            break;
+            }
+
+            $this->conn->commit();
+
+        } catch (Exception $e) {
+            $this->conn->rollBack(); 
+            throw $e;
+        }
     }
 
     public function readUser($id) {
         
     }
 
-    public function updateUser() {
+    public function updateUser($type, $data) {
 
     }
 
-    public function deleteUser() {
+    public function deleteUser($id) {
 
     }
 

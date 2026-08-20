@@ -5,23 +5,24 @@
 /****************************************/
 /* Como crear un usuario administrativo */
 /****************************************/
+START TRANSACTION;
 -- 1. Crear usuario basico
 INSERT INTO Usuarios(Nombre, Correo_Electronico, Contrasena)
 VALUES ('Nombre', 'mi@correo.com', 'HASH');
 
 -- 2. Tomar el id autoincrement creado en la consulta anterior.
-set @id_uadmin = LAST_INSERT_ID();
+set @id_usuario = LAST_INSERT_ID();
 
 -- 3. Agregar el id usuario de administrador a su respectiva tabla.
 INSERT INTO U_Administrativo(ID_Usuario)
-VALUES (@id_uadmin);
+VALUES (@id_usuario);
+COMMIT; 
 
 /**************************************/
 /* Como crear un contenedor (largito) */
 /**************************************/
 
 START TRANSACTION;
-
 -- 1. Crear distrito
 INSERT INTO Distritos(Serie)
 VALUES ('[X-111]');
