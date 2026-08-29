@@ -18,8 +18,8 @@ CREATE TABLE Usuarios (
 
 CREATE TABLE Ubicacion(
     ID_Ubicacion INT AUTO_INCREMENT PRIMARY KEY,
-    Latitud DECIMAL(9,6) NOT NULL,
-    Longitud DECIMAL(9,6) NOT NULL
+    Latitud DOUBLE NOT NULL,
+    Longitud DOUBLE NOT NULL
 );
 
 CREATE TABLE Elementos(
