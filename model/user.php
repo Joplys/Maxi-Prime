@@ -5,46 +5,24 @@ require_once __DIR__ . './db.php';
 class User {
     private $conn;
 
-    //TODO: Guardar a los tipos de usuario en un array asociativo aqui.
-    //asi no hay que andar marabaleando tipos de usuarios.
+    /*
+     * $data = [
+     * "type" => "administrativo"
+     * ];
+     */
 
     public function __construct() {
         $db = new Database();
         $this->conn = $db->getConnection();
     }
 
-    public function isUserInsideTable($id, $table) {
-        try {
-            $this->conn->beginTransaction();
-
-            $stmt = $this->conn->prepare("SELECT * FROM (?) WHERE id = (?);");
-            $stmt->bindParam(1, $table);
-            $stmt->bindParam(2, $id);
-            $stmt->execute();
-
-            $data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!empty($data)) {
-                // user found, awesome! :D
-                return true;
-            } else {
-                // user not found, big sad :(
-                return false;
-            }
-
-        } catch (Exception $e) {
-            $this->conn->rollBack(); 
-            throw $e;
-        }
-    }
-
-    public function createUser($data, $type) { 
+    public function createUser($data) { 
         try {
             $this->conn->beginTransaction();
 
             $stmt = $this->conn->prepare("
             INSERT INTO Usuarios(Nombre, Correo_Electronico, Contrasena)
-            VALUES (?,?,?);
+            VALUES (?,?,?)
             ");
 
             $stmt->bindParam(1, $data['nombre']);
@@ -55,31 +33,31 @@ class User {
 
             $idUsuario = $this->conn->lastInsertId();
 
-            switch($type) {
-            case "admin":
+            switch($data['type']) {
+            case "U_Administrativo":
                 $stmt = $this->conn->prepare("
                 INSERT INTO U_Administrativo(ID_Usuario)
-                VALUES (?);
+                VALUES (?)
                 ");
 
                 $stmt->bindParam(1, $idUsuario);
 
                 $stmt->execute();
             break;
-            case "vecino":
+            case "U_Vecino":
                 $stmt = $this->conn->prepare("
                 INSERT INTO U_Vecino(ID_Usuario) 
-                VALUES (?);
+                VALUES (?)
                 ");
 
                 $stmt->bindParam(1, $idUsuario);
 
                 $stmt->execute();
             break;
-            case "gestor":
+            case "U_Gestor_De_Planta":
                 $stmt = $this->conn->prepare("
                 INSERT INTO U_Gestor_De_Planta(ID_Usuario, ID_Planta_Asig)
-                VALUES (?, ?);
+                VALUES (?, ?)
                 ");
 
                 $stmt->bindParam(1, $idUsuario);
@@ -87,10 +65,10 @@ class User {
 
                 $stmt->execute();
             break;
-            case "camionero":
+            case "U_Camionero":
                 $stmt = $this->conn->prepare("
                 INSERT INTO U_Camionero(ID_Usuario)
-                VALUES (?);
+                VALUES (?)
                 ");
 
                 $stmt->bindParam(1, $idUsuario);
@@ -98,7 +76,9 @@ class User {
                 $stmt->execute();
             break;
             default:
-            //TODO: Add default
+                $this->conn->rollBack();
+                throw new Exception("Tipo de usuario no especificado");
+                return;
             break;
             }
 
@@ -110,23 +90,23 @@ class User {
         }
     }
 
-    public function readUser($id) {
-        try {
-        } catch (Exception $e) {
-            $this->conn->rollBack(); 
-            throw $e;
-        }
+    public function readUser($id, $type) {
+        $this->conn->prepare("
+        SELECT * FROM Usuarios
+        WHERE ID_Usuario = ?
+        ");
     }
 
-    public function updateUser($data, $type) {
+    public function updateUser($data) {
         try {
             $this->conn->beginTransaction();
 
-            // Conseguir los datos del usuario
             $stmt = $this->conn->prepare("
             SELECT * FROM Usuarios
-            WHERE ID_Usuario = ?;
+            WHERE ID_Usuario = ?
             ");
+
+            $stmt->bindParam(1, );
 
             $stmt->execute();
 
@@ -138,12 +118,22 @@ class User {
         }
     }
 
-    public function deleteUser($id) {
+    public function deleteUser($id, $type) {
         try {
+            $this->conn->beginTransaction();
+
+            $stmt = $this->conn->prepare("
+            DELETE FROM Usuarios WHERE ID_Usuario = ?
+            ");
+
+            $stmt->bindParam(1, $id);
+
+            $this->conn->commit();
+            
         } catch (Exception $e) {
             $this->conn->rollBack();
+            throw $e;
         }
     }
-
 }
 ?>
