@@ -1,4 +1,4 @@
-CREATE DATABASE proyecto
+CREATE DATABASE proyecto;
 
 USE proyecto;
 
@@ -37,13 +37,13 @@ CREATE TABLE Elem_Contenedores(
     N_Serie VARCHAR (6) UNIQUE NOT NULL,
     Tipo_Cont ENUM('Domiciliario','Intradomiciliario','Intradomiciliario_doble') NOT NULL,
     Tipo_Res ENUM('Reciclables','Mezclados','Organicos') NOT NULL,
-    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento)
+    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento) ON DELETE CASCADE
 );
 
 CREATE TABLE Elem_Planta(
     ID_Elemento INT PRIMARY KEY,
     Tipo_Planta ENUM('Reciclaje','Acopio','Vertedero','Transferencia') NOT NULL,
-    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento)
+    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento) ON DELETE CASCADE
 );
 
 CREATE TABLE Maquinaria(
@@ -58,7 +58,7 @@ CREATE TABLE Maquinaria(
 
 CREATE TABLE Elem_Taller(
     ID_Elemento INT PRIMARY KEY,
-    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento)
+    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento) ON DELETE CASCADE
 );
 
 CREATE TABLE Elem_Flota(
@@ -80,20 +80,20 @@ CREATE TABLE Puntos_Ruta(
     ID_Punto_Ruta INT AUTO_INCREMENT PRIMARY KEY,
     ID_Ruta INT NOT NULL,
     ID_Ubicacion INT NOT NULL,
-    FOREIGN KEY (ID_Ruta) REFERENCES Rutas(ID_Ruta),
+    FOREIGN KEY (ID_Ruta) REFERENCES Rutas(ID_Ruta) ON DELETE CASCADE,
     FOREIGN KEY (ID_Ubicacion) REFERENCES Ubicacion(ID_Ubicacion)
 );
 
 CREATE TABLE U_Vecino(
     ID_Usuario INT PRIMARY KEY,
-    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario)
+    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE CASCADE
 );
 
 CREATE TABLE U_Camionero(
     ID_Usuario INT PRIMARY KEY,
     ID_Ruta_Asig INT,
     ID_Flota_Asig INT,
-    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario),
+    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE CASCADE,
     FOREIGN KEY (ID_Ruta_Asig) REFERENCES Rutas(ID_Ruta),
     FOREIGN KEY (ID_Flota_Asig) REFERENCES Elem_Flota(ID_Elemento)
 );
@@ -101,13 +101,13 @@ CREATE TABLE U_Camionero(
 CREATE TABLE U_Gestor_De_Planta(
     ID_Usuario INT PRIMARY KEY,
     ID_Planta_Asig INT,
-    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario),
+    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE CASCADE,
     FOREIGN KEY (ID_Planta_Asig) REFERENCES Elem_Planta(ID_Elemento)
 );
 
 CREATE TABLE U_Administrativo(
     ID_Usuario INT PRIMARY KEY,
-    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario)
+    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE CASCADE
 );
 
 CREATE TABLE Incidencias(
@@ -118,6 +118,6 @@ CREATE TABLE Incidencias(
     Descripcion VARCHAR (3500),
     Archivo VARCHAR (1500),
     Estado ENUM('En_Cola','En_Revision','Aprobada','Denegada') DEFAULT 'En_Cola' NOT NULL,
-    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento),
-    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario)
+    FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento) ON DELETE CASCADE,
+    FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE SET NULL
 );
