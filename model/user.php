@@ -22,14 +22,15 @@ class User {
             $this->conn->beginTransaction();
 
             $stmt = $this->conn->prepare("
-            INSERT INTO Usuarios(Nombre, Correo_Electronico, Contrasena, Tipo)
+            INSERT INTO
+            Usuarios(Nombre, Correo_Electronico, Contrasena, Tipo)
             VALUES (?,?,?,?)
             ");
 
-            $stmt->bindParam(1, $data['nombre']);
-            $stmt->bindParam(2, $data['correo']);
-            $stmt->bindParam(3, $data['contrasena']);
-            $stmt->bindParam(4, $data['tipo']);
+            $stmt->bindParam(1, $data['Nombre']);
+            $stmt->bindParam(2, $data['Correo_Electronico']);
+            $stmt->bindParam(3, $data['Contrasena']);
+            $stmt->bindParam(4, $data['Tipo']);
 
             $stmt->execute();
 
