@@ -12,7 +12,6 @@ class User {
 
     public function createUser($data) { 
         try {
-            // Utilizar vecino como default si no se pasa un tipo
             $tipo = $data['tipo'] ?? 'U_Vecino';
 
             $this->conn->beginTransaction();
@@ -25,7 +24,7 @@ class User {
             $stmt->bindParam(1, $data['nombre']);
             $stmt->bindParam(2, $data['correo']);
             $stmt->bindParam(3, $data['contrasena']);
-            $stmt->bindParam(4, $tipo);
+            $stmt->bindParam(4, $data['tipo']);
 
             $stmt->execute();
 
@@ -60,7 +59,6 @@ class User {
 
                 $stmt->bindParam(1, $idUsuario);
                 $stmt->bindParam(2, $data['id_planta']);
-
                 $stmt->execute();
             break;
             case "U_Camionero":
@@ -87,18 +85,6 @@ class User {
     }
 
     public function readUser($id, $tipo) {
-
-        $tiposdeusuario = [
-            "U_Administrativo",
-            "U_Vecino",
-            "U_Gestor_De_Planta",
-            "U_Camionero"
-        ];
-
-        if(!in_array($tipo, $tiposdeusuario, true)) {
-            return false;
-        }
-
         $stmt = $this->conn->prepare("
         SELECT *
         FROM Usuarios
@@ -108,9 +94,7 @@ class User {
         ");
 
         $stmt->bindParam(1, $id);
-
         $stmt->execute();
-
         return $stmt->fetch(PDO::FETCH_ASSOC);
 
     }
@@ -120,11 +104,52 @@ class User {
             $this->conn->beginTransaction();
 
             $stmt = $this->conn->prepare("
+            UPDATE Usuarios
+            SET
+            Nombre = ?,
+            Correo_Electronico = ?,
+            Contrasena = ?
+            WHERE ID_Usuario = ?
             ");
 
-            $stmt->bindParam(1, );
+            $stmt->bindParam(1, $data['Nombre']);
+            $stmt->bindParam(2, $data['Correo_Electronico']);
+            $stmt->bindParam(3, $data['Contrasena']);
 
             $stmt->execute();
+
+            switch($data['type']) {
+            case "U_Administrativo":
+                // no tiene info especifica
+            break;
+            case "U_Vecino":
+                // no tiene info especifica
+            break;
+            case "U_Gestor_De_Planta":
+                $stmt = $this->conn->prepare("
+                UPDATE U_Gestor_De_Planta
+                SET 
+                ID_Planta_Asig = ?
+                WHERE ID_Usuario = ?
+                ");
+                $stmt->bindParam(1, $data['ID_Planta_Asig']);
+                $stmt->bindParam(2, $data['ID_Usuario']);
+                $stmt->execute();
+            break;
+            case "U_Camionero":
+                $stmt = $this->conn->prepare("
+                UPDATE U_Camionero
+                SET 
+                ID_Ruta_Asig = ?,
+                ID_Flota_Asig = ?
+                WHERE ID_Usuario = ?
+                ");
+                $stmt->bindParam(1, $data['ID_Ruta_Asig']);
+                $stmt->bindParam(2, $data['ID_Flota_Asig']);
+                $stmt->bindParam(3, $data['ID_Usuario']);
+                $stmt->execute();
+            break;
+            }
 
             $this->conn->commit();
 
@@ -144,6 +169,8 @@ class User {
             ");
 
             $stmt->bindParam(1, $id);
+
+            $stmt->execute();
 
             $this->conn->commit();
             
