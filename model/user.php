@@ -10,8 +10,13 @@ class User {
         $this->conn = $db->getConnection();
     }
 
+    // $data es un array asociativo que guarda
+    // tanto la informacion del usuario (Usuarios)
+    // como la especifica de su rol (U_Rol)
+
     public function createUser($data) { 
         try {
+            // utilizar vecino si no se especifica el tipo
             $tipo = $data['tipo'] ?? 'U_Vecino';
 
             $this->conn->beginTransaction();
