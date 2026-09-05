@@ -3,7 +3,7 @@
 require_once __DIR__ . './db.php';
 
 class User {
-    private $conn;
+    private PDO $conn;
 
     public function __construct() {
         $db = new Database();
@@ -14,7 +14,7 @@ class User {
     // tanto la informacion del usuario (Usuarios)
     // como la especifica de su rol (U_Rol)
 
-    public function createUser($data) { 
+    public function createUser(array $data) { 
         try {
             // utilizar vecino si no se especifica el tipo
             $tipo = $data['tipo'] ?? 'U_Vecino';
@@ -64,7 +64,7 @@ class User {
                 ");
 
                 $stmt->bindParam(1, $idUsuario);
-                $stmt->bindParam(2, $data['id_planta']);
+                $stmt->bindParam(2, $data['ID_Planta_Asig']);
                 $stmt->execute();
             break;
             case "U_Camionero":
@@ -90,22 +90,21 @@ class User {
         }
     }
 
-    public function readUser($id, $tipo) {
+    public function readUser(int $id, string $tipo): array {
         $stmt = $this->conn->prepare("
         SELECT *
         FROM Usuarios
         JOIN $tipo 
-            ON Usuarios.ID_Usuario = $tipo.ID_Usuario
+        ON Usuarios.ID_Usuario = $tipo.ID_Usuario
         WHERE Usuarios.ID_Usuario = ?
         ");
 
         $stmt->bindParam(1, $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
-
     }
 
-    public function updateUser($data) {
+    public function updateUser(array $data) {
         try {
             $this->conn->beginTransaction();
 
@@ -124,7 +123,7 @@ class User {
 
             $stmt->execute();
 
-            switch($data['type']) {
+            switch($data['Tipo']) {
             case "U_Administrativo":
                 // no tiene info especifica
             break;
@@ -165,7 +164,7 @@ class User {
         }
     }
 
-    public function deleteUser($id, $type) {
+    public function deleteUser(int $id) {
         try {
             $this->conn->beginTransaction();
 

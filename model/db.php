@@ -1,7 +1,7 @@
 <?php
 class Database {
 
-    private PDO $connection;
+    private PDO $conn;
 
     //TODO: Esto esta pensado para lampp, luego se tiene que
     //cambiar para que utilize el servidor de db.
@@ -13,13 +13,13 @@ class Database {
     // Este script se debe requerir una vez por script via require_once().
 
     public function __construct() {
-        if ($this->connection === null) {
-            $this->connection = new PDO("mysql;dbname=proyecto;host=localhost;port=3306",'root','');
+        if ($this->conn === null) {
+            $this->conn = new PDO("mysql;dbname=proyecto;host=localhost;port=3306",'root','');
         }
     }
 
     public function getConnection() {
-        return $this->connection; 
+        return $this->conn; 
     }
 }
 ?>
