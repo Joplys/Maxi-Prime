@@ -29,7 +29,6 @@ class Element {
 
             $idElem = $this->conn->lastInsertId();
 
-            //cambiar
             switch($data['Tipo']) {
             case "Elem_Contenedores":
                 $stmt = $this->conn->prepare("
