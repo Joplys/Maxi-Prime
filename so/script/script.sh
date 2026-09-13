@@ -117,9 +117,24 @@ respaldos() {
 }
 
 redes(){
+while true; do
+echo "Gestion de redes:
+1- Ver interfaces
+2- Configurar red (nmtui)
+0- Volver
+"
+read op_r
+case $op_r in
+    1)ip addr;;
+    2)sudo nmtui;;
+    0)break;;
+    *)echo "Opcion invalida";;
+esac
+done
 }
 
 basededatos(){
+# ip: 192.168.10.20
 }
 
 firewall() {
@@ -132,9 +147,7 @@ echo "Gestion de firewall:
 
 read op_f
 case $op_f in
-    1)
-        sudo firewall-cmd --list-all
-    ;;
+    1)sudo firewall-cmd --list-all;;
     2)
         read zona -p "Zona:"
         read port -p "Puerto:"
