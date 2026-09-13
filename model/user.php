@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . './db.php';
+require_once __DIR__ . '/db.php';
 
 class User {
     private PDO $conn;
@@ -120,6 +120,7 @@ class User {
             $stmt->bindParam(1, $data['Nombre']);
             $stmt->bindParam(2, $data['Correo_Electronico']);
             $stmt->bindParam(3, $data['Contrasena']);
+            $stmt->bindParam(4, $data['ID_Usuario']);
 
             $stmt->execute();
 
@@ -153,6 +154,9 @@ class User {
                 $stmt->bindParam(2, $data['ID_Flota_Asig']);
                 $stmt->bindParam(3, $data['ID_Usuario']);
                 $stmt->execute();
+            break;
+            default:
+                throw new Exception("Tipo de usuario no especificado");
             break;
             }
 

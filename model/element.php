@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . './db.php';
+require_once __DIR__ . '/db.php';
 
 class Element {
     private PDO $conn;
@@ -107,62 +107,88 @@ class Element {
     public function updateElem(array $data) {
         try {
             $this->conn->beginTransaction();
-
             $stmt = $this->conn->prepare("
             UPDATE Elementos
             SET
             Estado = ?,
             ID_Ubicacion = ?,
-            ID_Distrito = ?
-            Tipo = ?
+            ID_Distrito = ?,
             WHERE ID_Elemento = ?
             ");
-
+    
             $stmt->bindParam(1, $data['Estado']);
             $stmt->bindParam(2, $data['ID_Ubicacion']);
             $stmt->bindParam(3, $data['ID_Distrito']);
-            $stmt->bindParam(4, $data['Tipo']);
-
+            $stmt->bindParam(4, $data['ID_Elemento']);
+    
             $stmt->execute();
+    
+            switch ($data['Tipo']) {
+                case "Elem_Contenedores":
+                    $stmt = $this->conn->prepare("
+                    UPDATE Elem_Contenedores
+                    SET
+                    N_Serie = ?,
+                    Tipo_Cont = ?,
+                    Tipo_Res = ?
+                    WHERE ID_Elemento = ?
+                    ");
+    
+                    $stmt->bindParam(1, $data['N_Serie']);
+                    $stmt->bindParam(2, $data['Tipo_Cont']);
+                    $stmt->bindParam(3, $data['Tipo_Res']);
+                    $stmt->bindParam(4, $data['ID_Elemento']);
+    
+                    $stmt->execute();
+                break;
+    
+                case "Elem_Planta":
+                    $stmt = $this->conn->prepare("
+                    UPDATE Elem_Planta
+                    SET
+                    Tipo_Planta = ?
+                    WHERE ID_Elemento = ?
+                    ");
+    
+                    $stmt->bindParam(1, $data['Tipo_Planta']);
+                    $stmt->bindParam(2, $data['ID_Elemento']);
+    
+                    $stmt->execute();
+                break;
+    
+                case "Elem_Taller":
+                break;
+    
+                case "Elem_Flota":
+                    $stmt = $this->conn->prepare("
+                    UPDATE Elem_Flota
+                    SET
+                    Matricula = ?,
+                    Res_Recolector = ?,
+                    Tipo_Vehiculo = ?,
+                    ID_Taller_Almacen = ?
+                    WHERE ID_Elemento = ?
+                ");
+    
+                $stmt->bindParam(1, $data['Matricula']);
+                $stmt->bindParam(2, $data['Res_Recolector']);
+                $stmt->bindParam(3, $data['Tipo_Vehiculo']);
+                $stmt->bindParam(4, $data['ID_Taller_Almacen']);
+                $stmt->bindParam(5, $data['ID_Elemento']);
 
-            //cambiar
-            switch($data['Tipo']) {
-            case "U_Administrativo":
-                // no tiene info especifica
-            break;
-            case "U_Vecino":
-                // no tiene info especifica
-            break;
-            case "U_Gestor_De_Planta":
-                $stmt = $this->conn->prepare("
-                UPDATE U_Gestor_De_Planta
-                SET 
-                ID_Planta_Asig = ?
-                WHERE ID_Usuario = ?
-                ");
-                $stmt->bindParam(1, $data['ID_Planta_Asig']);
-                $stmt->bindParam(2, $data['ID_Usuario']);
                 $stmt->execute();
-            break;
-            case "U_Camionero":
-                $stmt = $this->conn->prepare("
-                UPDATE U_Camionero
-                SET 
-                ID_Ruta_Asig = ?,
-                ID_Flota_Asig = ?
-                WHERE ID_Usuario = ?
-                ");
-                $stmt->bindParam(1, $data['ID_Ruta_Asig']);
-                $stmt->bindParam(2, $data['ID_Flota_Asig']);
-                $stmt->bindParam(3, $data['ID_Usuario']);
-                $stmt->execute();
-            break;
+                break;
+                default:
+                    throw new Exception("Tipo de elemento no especificado");
+                break;
             }
-
+    
             $this->conn->commit();
-
+    
         } catch (Exception $e) {
-            $this->conn->rollBack();
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             throw $e;
         }
     }
@@ -174,7 +200,7 @@ class Element {
             // on delete cascade ya hace que el resto de las filas se eliminen
             //cambiar
             $stmt = $this->conn->prepare("
-            DELETE FROM Usuarios WHERE ID_Usuario = ?
+            DELETE FROM Elementos WHERE ID_Elemento = ?
             ");
 
             $stmt->bindParam(1, $id);
