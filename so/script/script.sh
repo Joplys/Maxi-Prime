@@ -122,7 +122,36 @@ redes(){
 basededatos(){
 }
 
-firewall(){
+firewall() {
+while true; do
+echo "Gestion de firewall:
+1- Ver reglas
+2- Abrir puerto
+3- Cerrar puerto
+0- Volver"
+
+read op_f
+case $op_f in
+    1)
+        sudo firewall-cmd --list-all
+    ;;
+    2)
+        read zona -p "Zona:"
+        read port -p "Puerto:"
+        read proto -p "Protocolo (tcp/udp):"
+        sudo firewall-cmd --permanent --zone="$zona" --add-port="$port/$proto"
+        sudo firewall-cmd --reload
+    ;;
+    3)
+        read port -p "Puerto:"
+        read proto -p "Protocolo (tcp/udp):"
+        sudo firewall-cmd --permanent --remove-port="$port/$proto"
+        sudo firewall-cmd --reload
+    ;;
+    0) break ;;
+    *) echo "Opcion invalida" ;;
+esac
+done
 }
 
 logs() {
