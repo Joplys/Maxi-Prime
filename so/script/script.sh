@@ -114,6 +114,7 @@ done
 }
 
 respaldos() {
+echo "no implementado"
 }
 
 redes(){
@@ -135,6 +136,7 @@ done
 
 basededatos(){
 # ip: 192.168.10.20
+echo "no implementado"
 }
 
 firewall() {
