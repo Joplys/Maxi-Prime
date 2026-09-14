@@ -73,6 +73,36 @@ try {
         ]);
     break;
 
+    case 'register':
+    $tipo = $data['tipo'] ?? '';
+
+    switch ($tipo) {
+        case 'U_Administrativo':
+            $userController->createAdministrativo($data);
+            break;
+
+        case 'U_Vecino':
+            $userController->createVecino($data);
+            break;
+
+        case 'U_Gestor_De_Planta':
+            $userController->createGestorDePlanta($data);
+            break;
+
+        case 'U_Camionero':
+            $userController->createCamionero($data);
+            break;
+
+        default:
+            throw new Exception("Tipo de usuario no valido.");
+    }
+
+    echo json_encode([
+        "status" => "success",
+        "message" => "Usuario registrado correctamente."
+    ]);
+    break;
+
     default:
         throw new Exception("Accion no valida.");
     }

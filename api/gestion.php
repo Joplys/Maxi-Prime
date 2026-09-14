@@ -2,7 +2,6 @@
 
 require_once __DIR__ . '/../controller/elementController.php';
 require_once __DIR__ . '/../controller/maquinariaController.php';
-require_once __DIR__ . '/../controller/userController.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header("Access-Control-Allow-Origin: *");
@@ -17,7 +16,6 @@ $data = json_decode($rawInput, true);
 try {
     $element = new elementController();
     $maquinaria = new maquinariaController();
-    $user = new userController();
 
     $resource = $_GET['resource'] ?? null;
     $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
