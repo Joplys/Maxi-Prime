@@ -7,11 +7,12 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8000:80"
+      - "8000:443"
     volumes:
       - ./view:/var/www/frontend:ro
       - .:/var/www/backend:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       - backend
 
