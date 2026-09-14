@@ -3,6 +3,20 @@ services:
     build: .
     volumes:
       - .:/var/www/backend
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: proyecto
+      MYSQL_USER: proyecto
+      MYSQL_PASSWORD: proyecto_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/ddl.sql:/docker-entrypoint-initdb.d/ddl.sql:ro
 
   nginx:
     image: nginx:alpine
@@ -15,4 +29,7 @@ services:
       - ./certs:/etc/nginx/certs:ro
     depends_on:
       - backend
+
+volumes:
+  db_data:
 

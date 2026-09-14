@@ -208,5 +208,3 @@ class userController {
         return $this->user->loginUser($email, $contrasena);
     }
 }
-?>
-

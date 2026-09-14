@@ -3,23 +3,25 @@ class Database {
 
     private PDO $conn;
 
-    //TODO: Esto esta pensado para lampp, luego se tiene que
-    //cambiar para que utilize el servidor de db.
-
-    // El objetivo es tener una sola conexion por script
-    // por motivos de seguridad, por lo cual se revisa si
-    // la conexion no existe y unicamente en ese caso se crea.
-    
-    // Este script se debe requerir una vez por script via require_once().
-
     public function __construct() {
-        if ($this->conn === null) {
-            $this->conn = new PDO("mysql;dbname=proyecto;host=localhost;port=3306",'root','');
-        }
+        $this->conn = new PDO(
+            "mysql:host=db;port=3306;dbname=proyecto;charset=utf8mb4",
+            "proyecto",
+            "proyecto_password"
+        );
+
+        $this->conn->setAttribute(
+            PDO::ATTR_ERRMODE,
+            PDO::ERRMODE_EXCEPTION
+        );
+
+        $this->conn->setAttribute(
+            PDO::ATTR_DEFAULT_FETCH_MODE,
+            PDO::FETCH_ASSOC
+        );
     }
 
-    public function getConnection() {
-        return $this->conn; 
+    public function getConnection(): PDO {
+        return $this->conn;
     }
 }
-?>

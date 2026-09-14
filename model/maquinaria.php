@@ -73,5 +73,3 @@ class Maquinaria {
         $stmt->execute();
     }
 }
-?>
-
