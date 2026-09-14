@@ -16,12 +16,22 @@ class Element {
 
             $stmt = $this->conn->prepare("
             INSERT INTO
+            Ubicacion(Latitud, Longitud)
+            VALUES(?, ?)
+            ");
+
+            $stmt->execute();
+
+            $idUbicacion = $this->conn->lastInsertId();
+
+            $stmt = $this->conn->prepare("
+            INSERT INTO
             Elementos(Estado, ID_Ubicacion, ID_Districto, Tipo)
             VALUES (?,?,?,?)
             ");
 
             $stmt->bindParam(1, $data['Estado']);
-            $stmt->bindParam(2, $data['ID_Ubicacion']);
+            $stmt->bindParam(2, $idUbicacion);
             $stmt->bindParam(3, $data['ID_Districto']);
             $stmt->bindParam(4, $data['Tipo']);
 
@@ -91,35 +101,82 @@ class Element {
     }
 
     public function readElem(int $id, string $tipo): array {
+        $tablas = [
+            'Elem_Contenedores',
+            'Elem_Planta',
+            'Elem_Taller',
+            'Elem_Flota'
+        ];
+    
+        if (!in_array($tipo, $tablas, true)) {
+            throw new Exception("Tabla restringida");
+        }
+    
         $stmt = $this->conn->prepare("
-        SELECT *
-        FROM Elementos 
-        JOIN $tipo 
-        ON Elementos.ID_Elemento = $tipo.ID_Elemento
-        WHERE Elementos.ID_Elemento = ?
+            SELECT
+                Elementos.*,
+                Ubicacion.Latitud,
+                Ubicacion.Longitud,
+                $tipo.*
+            FROM Elementos
+            JOIN Ubicacion
+                ON Elementos.ID_Ubicacion = Ubicacion.ID_Ubicacion
+            JOIN $tipo
+                ON Elementos.ID_Elemento = $tipo.ID_Elemento
+            WHERE Elementos.ID_Elemento = ?
         ");
-
+    
         $stmt->bindParam(1, $id);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return $result;
     }
-
     public function updateElem(array $data) {
         try {
             $this->conn->beginTransaction();
+
+            $stmt = $this->conn->prepare("
+            SELECT ID_Ubicacion
+            FROM Elementos
+            WHERE ID_Elemento = ?
+            ");
+
+            $stmt->bindParam(1, $data['ID_Elemento']);
+            $stmt->execute();
+
+            $idUbicacion = $stmt->fetchColumn();
+
+            if ($idUbicacion === false) {
+                throw new Exception("ID_Ubicacion no encontrado");
+            }
+
+            $stmt = $this->conn->prepare("
+            UPDATE Ubicacion
+            SET
+            Latitud = ?,
+            Longitud = ?
+            WHERE ID_Ubicacion = ?
+            ");
+
+            $stmt->bindParam(1, $data['Latitud']);
+            $stmt->bindParam(2, $data['Longitud']);
+            $stmt->bindParam(3, $idUbicacion);
+
+            $stmt->execute();
+
             $stmt = $this->conn->prepare("
             UPDATE Elementos
             SET
             Estado = ?,
-            ID_Ubicacion = ?,
-            ID_Distrito = ?,
+            ID_Distrito = ?
             WHERE ID_Elemento = ?
             ");
     
             $stmt->bindParam(1, $data['Estado']);
-            $stmt->bindParam(2, $data['ID_Ubicacion']);
-            $stmt->bindParam(3, $data['ID_Distrito']);
-            $stmt->bindParam(4, $data['ID_Elemento']);
+            $stmt->bindParam(2, $data['ID_Distrito']);
+            $stmt->bindParam(3, $data['ID_Elemento']);
     
             $stmt->execute();
     
@@ -213,6 +270,12 @@ class Element {
             $this->conn->rollBack();
             throw $e;
         }
+    }
+
+    private function createUbicacion() {
+
+    }
+    private function deleteUbicacion() {
     }
 }
 ?>
