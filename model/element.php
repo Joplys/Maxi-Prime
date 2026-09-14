@@ -20,19 +20,22 @@ class Element {
             VALUES(?, ?)
             ");
 
+            $stmt->bindParam(1, $data['Latitud']);
+            $stmt->bindParam(2, $data['Longitud']);
+
             $stmt->execute();
 
             $idUbicacion = $this->conn->lastInsertId();
 
             $stmt = $this->conn->prepare("
             INSERT INTO
-            Elementos(Estado, ID_Ubicacion, ID_Districto, Tipo)
+            Elementos(Estado, ID_Ubicacion, ID_Distrito, Tipo)
             VALUES (?,?,?,?)
             ");
 
             $stmt->bindParam(1, $data['Estado']);
             $stmt->bindParam(2, $idUbicacion);
-            $stmt->bindParam(3, $data['ID_Districto']);
+            $stmt->bindParam(3, $data['ID_Distrito']);
             $stmt->bindParam(4, $data['Tipo']);
 
             $stmt->execute();
@@ -243,9 +246,7 @@ class Element {
             $this->conn->commit();
     
         } catch (Exception $e) {
-            if ($this->conn->inTransaction()) {
-                $this->conn->rollBack();
-            }
+            $this->conn->rollBack();
             throw $e;
         }
     }
@@ -272,11 +273,6 @@ class Element {
         }
     }
 
-    private function createUbicacion() {
-
-    }
-    private function deleteUbicacion() {
-    }
 }
 ?>
 

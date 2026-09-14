@@ -16,9 +16,6 @@ class User {
 
     public function createUser(array $data) { 
         try {
-            // utilizar vecino si no se especifica el tipo
-            $tipo = $data['tipo'] ?? 'U_Vecino';
-
             $this->conn->beginTransaction();
 
             $stmt = $this->conn->prepare("
@@ -36,7 +33,7 @@ class User {
 
             $idUsuario = $this->conn->lastInsertId();
 
-            switch($tipo) {
+            switch($data['Tipo']) {
             case "U_Administrativo":
                 $stmt = $this->conn->prepare("
                 INSERT INTO U_Administrativo(ID_Usuario)
@@ -91,6 +88,17 @@ class User {
     }
 
     public function readUser(int $id, string $tipo): array {
+        $tablas = [
+            'U_Administrativo',
+            'U_Vecino',
+            'U_Gestor_De_Planta',
+            'U_Camionero'
+        ];
+        
+        if (!in_array($tipo, $tablas, true)) {
+            throw new Exception("Tipo de usuario no válido");
+        }
+
         $stmt = $this->conn->prepare("
         SELECT *
         FROM Usuarios
