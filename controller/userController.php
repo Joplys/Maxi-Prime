@@ -203,6 +203,10 @@ class userController {
            $this->user->deleteUser($id); 
         }
     }
+
+    public function login(string $email, string $contrasena) {
+        return $this->user->loginUser($email, $contrasena);
+    }
 }
 ?>
 

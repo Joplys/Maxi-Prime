@@ -1,222 +1,209 @@
 <?php
-session_start();
+
+require_once __DIR__ . '/../controller/elementController.php';
+require_once __DIR__ . '/../controller/maquinariaController.php';
+require_once __DIR__ . '/../controller/userController.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Methods: GET, POST");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
-if (!isset($_SESSION['elementos'])) {
-    $_SESSION['elementos'] = [];
-    $_SESSION['next_element_id'] = 1;
-}
-
-if (!isset($_SESSION['usuarios'])) {
-    $_SESSION['usuarios'] = [];
-    $_SESSION['next_user_id'] = 1;
-}
+$metodo = $_SERVER['REQUEST_METHOD'];
 
 $rawInput = file_get_contents("php://input");
-$data = json_decode($rawInput);
+$data = json_decode($rawInput, true);
 
+try {
+    $element = new elementController();
+    $maquinaria = new maquinariaController();
+    $user = new userController();
 
-$action = $data->action ?? $_GET['action'] ?? null;
+    $resource = $_GET['resource'] ?? null;
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
-if (!$action) {
-    echo json_encode([
-        "status" => "error", 
-        "message" => "Acción no especificada. Acciones soportadas: list_elements, add_element, delete_element, list_users, add_user, delete_user, reset_session"
-    ]);
-    exit;
-}
+    if ($resource === 'contenedor') {
+        switch ($metodo) {
+            case 'POST':
+                $element->createContenedor($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Contenedor creado."
+                ]);
+                break;
 
-switch ($action) {
-    case 'list_elements':
-        listarElementos();
-        break;
-    case 'add_element':
-        agregarElemento($data);
-        break;
-    case 'delete_element':
-        eliminarElemento($data);
-        break;
+            case 'GET':
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $element->readContenedor($id)
+                ]);
+                break;
 
-    case 'list_users':
-        listarUsuarios();
-        break;
-    case 'add_user':
-        agregarUsuario($data);
-        break;
-    case 'delete_user':
-        eliminarUsuario($data);
-        break;
-    
-    case 'reset_session':
-        $_SESSION['elementos'] = [];
-        $_SESSION['usuarios'] = [];
-        $_SESSION['next_element_id'] = 1;
-        $_SESSION['next_user_id'] = 1;
-        echo json_encode(["status" => "success", "message" => "Datos de sesión reiniciados."]);
-        break;
+            case 'PUT':
+                $element->updateContenedor($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Contenedor actualizado."
+                ]);
+                break;
 
-    default:
-        echo json_encode(["status" => "error", "message" => "Acción no válida: '$action'"]);
-        break;
-}
-
-function listarElementos() {
-    echo json_encode([
-        "status" => "success",
-        "data" => array_values($_SESSION['elementos'])
-    ]);
-}
-
-function agregarElemento($data) {
-    if (empty($data->tipo_elemento)) {
-        echo json_encode(["status" => "error", "message" => "El campo 'tipo_elemento' es obligatorio."]);
-        return;
-    }
-
-    $tipo = strtolower($data->tipo_elemento);
-    $id = $_SESSION['next_element_id']++;
-
-    $nuevoElemento = [
-        "ID_Elemento"       => $id,
-        "Tipo_Elemento"     => $tipo,
-        "Ubicacion"         => $data->ubicacion ?? null,
-        "Estado_Contenedor" => null,
-        "Estado_Planta"     => null,
-        "Estado_Flota"      => null,
-        "Estado_Taller"     => null,
-        "N_Serie"           => null,
-        "Tipo_Cont"         => null,
-        "Tipo_Res"          => null,
-        "Tipo_Planta"       => null,
-        "Matricula"         => null,
-        "Tipo_Vehiculo"     => null
-    ];
-
-    switch ($tipo) {
-        case 'contenedor':
-            $nuevoElemento['N_Serie']           = $data->n_serie ?? 'CNT' . str_pad($id, 3, '0', STR_PAD_LEFT);
-            $nuevoElemento['Tipo_Cont']         = $data->tipo_cont ?? 'domiciliario';
-            $nuevoElemento['Tipo_Res']          = $data->tipo_res ?? 'reciclables';
-            $nuevoElemento['Estado_Contenedor'] = $data->estado ?? 'operable';
-            break;
-
-        case 'planta':
-            $nuevoElemento['Tipo_Planta']       = $data->tipo_planta ?? 'reciclaje';
-            $nuevoElemento['Estado_Planta']     = $data->estado ?? 'operable';
-            break;
-
-        case 'flota':
-            $nuevoElemento['Matricula']         = $data->matricula ?? 'ABC' . rand(1000, 9999);
-            $nuevoElemento['Tipo_Vehiculo']     = $data->tipo_vehiculo ?? 'camion_trasero';
-            $nuevoElemento['Estado_Flota']      = $data->estado ?? 'operable';
-            break;
-
-        case 'taller':
-            $nuevoElemento['Estado_Taller']     = $data->estado ?? 'operable';
-            break;
-
-        default:
-            echo json_encode(["status" => "error", "message" => "Tipo de elemento inválido."]);
-            return;
-    }
-
-    $_SESSION['elementos'][] = $nuevoElemento;
-
-    echo json_encode([
-        "status" => "success",
-        "message" => "Elemento creado exitosamente en la sesión.",
-        "id_elemento" => $id,
-        "elemento" => $nuevoElemento
-    ]);
-}
-
-function eliminarElemento($data) {
-    if (empty($data->id_elemento)) {
-        echo json_encode(["status" => "error", "message" => "Debes especificar 'id_elemento'."]);
-        return;
-    }
-
-    $idABorrar = (int)$data->id_elemento;
-    $encontrado = false;
-
-    foreach ($_SESSION['elementos'] as $index => $elem) {
-        if ((int)$elem['ID_Elemento'] === $idABorrar) {
-            unset($_SESSION['elementos'][$index]);
-            $_SESSION['elementos'] = array_values($_SESSION['elementos']);
-            $encontrado = true;
-            break;
+            case 'DELETE':
+                $element->deleteElem($id);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Contenedor eliminado."
+                ]);
+                break;
         }
     }
 
-    if ($encontrado) {
-        echo json_encode(["status" => "success", "message" => "Elemento ID $idABorrar eliminado de la sesión."]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "No se encontró el elemento ID $idABorrar."]);
-    }
-}
+    if ($resource === 'planta') {
+        switch ($metodo) {
+            case 'POST':
+                $element->createPlanta($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Planta creada."
+                ]);
+                break;
 
-function listarUsuarios() {
-    echo json_encode([
-        "status" => "success",
-        "data" => array_values($_SESSION['usuarios'])
-    ]);
-}
+            case 'GET':
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $element->readPlanta($id)
+                ]);
+                break;
 
-function agregarUsuario($data) {
-    if (empty($data->nombre) || empty($data->email) || empty($data->password) || empty($data->rol)) {
-        echo json_encode(["status" => "error", "message" => "Faltan campos obligatorios (nombre, email, password, rol)."]);
-        return;
-    }
+            case 'PUT':
+                $element->updatePlanta($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Planta actualizada."
+                ]);
+                break;
 
-    $rol = strtolower($data->rol);
-    $id = $_SESSION['next_user_id']++;
-
-    $nuevoUsuario = [
-        "ID_US"          => $id,
-        "Nombre"         => $data->nombre,
-        "Email"          => $data->email,
-        "Fecha_Registro" => date('Y-m-d'),
-        "Rol"            => $rol,
-        "ID_Planta"      => ($rol === 'gestor') ? ($data->id_planta ?? null) : null,
-        "ID_Ruta_Asign"  => ($rol === 'camionero') ? ($data->id_ruta ?? null) : null,
-        "Flota_Asign"    => ($rol === 'camionero') ? ($data->flota_asign ?? null) : null
-    ];
-
-    $_SESSION['usuarios'][] = $nuevoUsuario;
-
-    echo json_encode([
-        "status" => "success",
-        "message" => "Usuario agregado exitosamente en la sesión.",
-        "usuario" => $nuevoUsuario
-    ]);
-}
-
-function eliminarUsuario($data) {
-    if (empty($data->id_us)) {
-        echo json_encode(["status" => "error", "message" => "Debes indicar 'id_us'."]);
-        return;
-    }
-
-    $idABorrar = (int)$data->id_us;
-    $encontrado = false;
-
-    foreach ($_SESSION['usuarios'] as $index => $us) {
-        if ((int)$us['ID_US'] === $idABorrar) {
-            unset($_SESSION['usuarios'][$index]);
-            $_SESSION['usuarios'] = array_values($_SESSION['usuarios']);
-            $encontrado = true;
-            break;
+            case 'DELETE':
+                $element->deleteElem($id);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Planta eliminada."
+                ]);
+                break;
         }
     }
 
-    if ($encontrado) {
-        echo json_encode(["status" => "success", "message" => "Usuario ID $idABorrar eliminado de la sesión."]);
-    } else {
-        echo json_encode(["status" => "error", "message" => "No se encontró el usuario ID $idABorrar."]);
+    if ($resource === 'taller') {
+        switch ($metodo) {
+            case 'POST':
+                $element->createTaller($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Taller creado."
+                ]);
+                break;
+
+            case 'GET':
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $element->readTaller($id)
+                ]);
+                break;
+
+            case 'PUT':
+                $element->updateTaller($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Taller actualizado."
+                ]);
+                break;
+
+            case 'DELETE':
+                $element->deleteElem($id);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Taller eliminado."
+                ]);
+                break;
+        }
     }
+
+    if ($resource === 'flota') {
+        switch ($metodo) {
+            case 'POST':
+                $element->createFlota($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Flota creada."
+                ]);
+                break;
+
+            case 'GET':
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $element->readFlota($id)
+                ]);
+                break;
+
+            case 'PUT':
+                $element->updateFlota($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Flota actualizada."
+                ]);
+                break;
+
+            case 'DELETE':
+                $element->deleteElem($id);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Flota eliminada."
+                ]);
+                break;
+        }
+    }
+
+    if ($resource === 'maquinaria') {
+        switch ($metodo) {
+            case 'POST':
+                $maquinaria->createMaquinaria($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Maquinaria creada."
+                ]);
+                break;
+
+            case 'GET':
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $maquinaria->readMaquinaria($id)
+                ]);
+                break;
+
+            case 'PUT':
+                $maquinaria->updateMaquinaria($data);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Maquinaria actualizada."
+                ]);
+                break;
+
+            case 'DELETE':
+                $maquinaria->deleteMaquinaria($id);
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Maquinaria eliminada."
+                ]);
+                break;
+        }
+    }
+
+} catch (Exception $e) {
+    http_response_code(400);
+
+    echo json_encode([
+        "status" => "error",
+        "message" => $e->getMessage()
+    ]);
 }
 ?>
+

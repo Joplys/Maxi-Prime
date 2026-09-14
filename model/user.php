@@ -24,9 +24,11 @@ class User {
             VALUES (?,?,?,?)
             ");
 
+            $contraHash = password_hash($data['Contrasena'], PASSWORD_DEFAULT);
+
             $stmt->bindParam(1, $data['Nombre']);
             $stmt->bindParam(2, $data['Correo_Electronico']);
-            $stmt->bindParam(3, $data['Contrasena']);
+            $stmt->bindParam(3, $contraHash);
             $stmt->bindParam(4, $data['Tipo']);
 
             $stmt->execute();
@@ -125,9 +127,11 @@ class User {
             WHERE ID_Usuario = ?
             ");
 
+            $contraHash = password_hash($data['Contrasena'], PASSWORD_DEFAULT);
+
             $stmt->bindParam(1, $data['Nombre']);
             $stmt->bindParam(2, $data['Correo_Electronico']);
-            $stmt->bindParam(3, $data['Contrasena']);
+            $stmt->bindParam(3, $contraHash);
             $stmt->bindParam(4, $data['ID_Usuario']);
 
             $stmt->execute();
@@ -194,6 +198,26 @@ class User {
         } catch (Exception $e) {
             $this->conn->rollBack();
             throw $e;
+        }
+    }
+
+    public function loginUser(string $email, string $contrasena) {
+        $stmt = $this->conn->prepare("
+        SELECT Contrasena FROM Usuarios WHERE Correo_Electronico = ?
+        ");
+        $stmt->bindParam(1, $email);
+        $stmt->execute();
+
+        $passhash = $stmt->fetchColumn();
+
+        if (empty($passhash)) {
+            throw new Exception("Credenciales incorrectas.");
+        }
+
+        if (password_verify($contrasena, $passhash)) {
+            return true;
+        } else {
+            return false;
         }
     }
 }
