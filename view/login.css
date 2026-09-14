@@ -1,3 +1,17 @@
+:root {
+  --bg: #F6F3EA;
+  --ink: #1C2B22;
+  --ink-soft: #4B594F;
+  --forest: #1F3A2E;
+  --forest-light: #2F5942;
+  --line: rgba(28, 43, 34, 0.12);
+  --panel-bg: #FFFFFF;
+  --verde: #4C9A6A;
+  --radius: 14px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -5,71 +19,102 @@
 }
 
 body {
-  font-family: sans-serif;
-  background: #f5f5f5;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
+.brand {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--forest);
+}
+
+.logo-box{
+  width: 38px;
+  height: 38px; 
+  background: url('logo.png') center/contain no-repeat;
+  }
+
 .card {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 2rem;
-  width: 300px;
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 50px rgba(28, 43, 34, 0.08);
+  padding: 2.1rem 2rem;
+  width: 320px;
 }
 
 h2 {
+  font-family: var(--font-display);
   font-size: 20px;
-  font-weight: 500;
-  color: #111;
-  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 1.6rem;
+  letter-spacing: -0.01em;
 }
 
 .field {
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
 }
 
 .field label {
   display: block;
-  font-size: 13px;
-  color: #555;
-  margin-bottom: 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
 }
 
 .field input {
   width: 100%;
-  padding: 0 10px;
-  height: 36px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  color: #111;
+  padding: 0 12px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
   font-size: 14px;
   outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .field input:focus {
-  border-color: #534AB7;
-  box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.1);
+  border-color: var(--forest-light);
+  box-shadow: 0 0 0 3px rgba(31, 58, 46, 0.1);
+  background: #fff;
 }
 
 .btn {
   width: 100%;
-  height: 36px;
-  margin-top: 0.5rem;
-  background: #534AB7;
+  height: 40px;
+  margin-top: 0.4rem;
+  background: var(--forest);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 14px;
   cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
 }
 
 .btn:hover {
-  opacity: 0.88;
+  filter: brightness(1.1);
 }
 
 .btn:active {
@@ -78,13 +123,14 @@ h2 {
 
 .link {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.2rem;
   font-size: 13px;
-  color: #666;
+  color: var(--ink-soft);
 }
 
 .link a {
-  color: #534AB7;
+  color: var(--forest);
+  font-weight: 600;
   text-decoration: none;
 }
 
