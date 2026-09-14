@@ -120,3 +120,12 @@ CREATE TABLE Incidencias(
     FOREIGN KEY (ID_Elemento) REFERENCES Elementos(ID_Elemento) ON DELETE CASCADE,
     FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON DELETE SET NULL
 );
+
+INSERT INTO 
+Distritos (Serie) 
+VALUES
+('D001'),
+('D002'),
+('D003'),
+('D004'),
+('D005');
