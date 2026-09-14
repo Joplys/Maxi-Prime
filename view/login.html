@@ -59,9 +59,12 @@
         alert(data.message);
 
         if (data.status === 'success') {
-          if (data.user && data.user.Rol === 'admin') {
+          if (data.user && data.user.Rol === 'U_Administrativo') {
             window.location.href = 'admin.html';
-          } else {
+          } else{
+            if (data.user && data.user.Rol === 'U_Camionero') {
+            window.location.href = 'mapatrabajador.html';
+          } else{
             window.location.href = '/Maxi-Prime/view/pagina principal/paginamapa.html';
           }
         }
