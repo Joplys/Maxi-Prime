@@ -1,6 +1,5 @@
-CREATE DATABASE proyecto;
-
-USE proyecto;
+-- CREATE DATABASE proyecto;
+-- USE proyecto;
 
 CREATE TABLE Distritos(  
     ID_Distrito INT AUTO_INCREMENT PRIMARY KEY,
