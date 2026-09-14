@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de trabajadores · Maxi-bin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="stylesmapatrabajador.css">
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="logo-box"></div>
+      <span class="topbar-title">Maxi-bin</span>
+      <span class="topbar-sub">Panel de trabajadores</span>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <div id="map"></div>
+
+    <aside class="panel">
+      <div class="panel-dots">
+        <span class="dot active" data-dot="rutas"></span>
+        <span class="dot" data-dot="flota"></span>
+        <span class="dot" data-dot="reportes"></span>
+      </div>
+
+      <div class="panel-nav">
+        <button class="nav-btn" id="prevBtn" aria-label="Anterior">‹</button>
+
+        <div class="panel-viewport">
+          <div class="panel-track" id="panelTrack">
+
+            <section class="panel-view" data-view="rutas">
+              <h2>Rutas</h2>
+              <p class="panel-sub">Rutas de recolección activas y planificadas</p>
+              <ul class="item-list" id="rutasList"></ul>
+            </section>
+
+            <section class="panel-view" data-view="flota">
+              <h2>Flota</h2>
+              <p class="panel-sub">Vehículos y su estado operativo</p>
+              <ul class="item-list" id="flotaList"></ul>
+            </section>
+
+            <section class="panel-view" data-view="reportes">
+              <h2>Reportes</h2>
+              <p class="panel-sub">Incidencias enviadas por vecinos</p>
+              <ul class="item-list" id="reportesList"></ul>
+            </section>
+
+          </div>
+        </div>
+
+        <button class="nav-btn" id="nextBtn" aria-label="Siguiente">›</button>
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="informeModal">
+  <div class="modal">
+    <button class="modal-close" data-close="informeModal">×</button>
+    <div class="modal-eyebrow">Informe de incidencia</div>
+    <h3 id="informeAsunto">Asunto</h3>
+    <div class="modal-meta">
+      <span id="informeElemento">Elemento afectado: —</span>
+      <span id="informeFecha">DD/MM/AAAA</span>
+    </div>
+    <div class="modal-body" id="informeCuerpo">—</div>
+
+    <button type="button" class="btn btn-secondary" id="informeVerMapa">Ver en el mapa</button>
+
+    <div class="field" style="margin-top:16px;">
+      <label for="informeEstadoSelect">Estado del reporte</label>
+      <select id="informeEstadoSelect">
+        <option value="Pendiente">Pendiente</option>
+        <option value="En revisión">En revisión</option>
+        <option value="Resuelto">Resuelto</option>
+      </select>
+    </div>
+    <button type="button" class="btn btn-submit" id="informeGuardar">Guardar estado</button>
+    <p class="save-confirm" id="informeGuardadoMsg" hidden>Estado actualizado.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="apptrabajador.js"></script>
+</body>
+</html>
