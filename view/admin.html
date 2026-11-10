@@ -31,7 +31,7 @@
         <h2>Elementos físicos</h2>
         <p>Contenedores, plantas, flotas y talleres registrados en el sistema.</p>
       </div>
-      <button class="btn btn-primary" onclick="cargarElementos()">Actualizar</button>
+      <div class="field"><label for="buscarElementoId">Consultar ID</label><input id="buscarElementoId" type="number" min="1" placeholder="ID del elemento"></div><button class="btn btn-primary" type="button" onclick="consultarElemento()">Consultar</button>
     </div>
 
     <div class="panel">
@@ -46,7 +46,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="empty-row"><td colspan="5">Cargando elementos…</td></tr>
+          <tr class="empty-row"><td colspan="5">Consultá un elemento por su ID. La API no ofrece un listado general.</td></tr>
         </tbody>
       </table>
     </div>
@@ -62,6 +62,7 @@
 
     <div class="form-card">
       <form id="formCrearElemento" class="form-grid">
+        <input type="hidden" id="elem_id">
         <div class="field">
           <label for="elem_tipo">Tipo de elemento</label>
           <select id="elem_tipo" onchange="cambiarCamposElemento()">
@@ -73,38 +74,46 @@
         </div>
 
         <div class="field">
-          <label for="elem_ubicacion">ID ubicación</label>
-          <input type="number" id="elem_ubicacion" placeholder="Ej: 1">
+          <label for="elem_latitud">Latitud</label>
+          <input type="number" step="any" id="elem_latitud" placeholder="-34.90" required>
         </div>
 
         <div class="field">
+          <label for="elem_longitud">Longitud</label>
+          <input type="number" step="any" id="elem_longitud" placeholder="-56.18" required>
+        </div>
+        <div class="field">
+          <label for="elem_distrito">ID distrito</label>
+          <input type="number" min="1" id="elem_distrito" value="1" required>
+        </div>
+        <div class="field">
           <label for="elem_estado">Estado</label>
           <select id="elem_estado">
-            <option value="operable">Operable</option>
-            <option value="req_asistencia">Requiere asistencia</option>
-            <option value="req_asistencia_inmediata">Requiere asistencia inmediata</option>
+            <option value="Disponible">Disponible</option>
+            <option value="Req. Asistencia">Requiere asistencia</option>
+            <option value="Req. Asistencia Inmediata">Requiere asistencia inmediata</option>
           </select>
         </div>
 
         <div class="subfields" id="campos_contenedor">
           <div class="field">
             <label for="cont_n_serie">Nº de serie</label>
-            <input type="text" id="cont_n_serie" maxlength="6" placeholder="CNT001">
+            <input type="text" id="cont_n_serie" maxlength="6" placeholder="CNT001" required>
           </div>
           <div class="field">
             <label for="cont_tipo_cont">Tipo de contenedor</label>
             <select id="cont_tipo_cont">
-              <option value="domiciliario">Domiciliario</option>
-              <option value="intradomiciliario">Intradomiciliario</option>
-              <option value="intradomiciliario_doble">Intradomiciliario doble</option>
+              <option value="Domiciliario">Domiciliario</option>
+              <option value="Intradomiciliario">Intradomiciliario</option>
+              <option value="Intradomiciliario_doble">Intradomiciliario doble</option>
             </select>
           </div>
           <div class="field">
             <label for="cont_tipo_res">Tipo de residuo</label>
             <select id="cont_tipo_res">
-              <option value="reciclables">Reciclables</option>
-              <option value="mezclados">Mezclados</option>
-              <option value="organicos">Orgánicos</option>
+              <option value="Reciclables">Reciclables</option>
+              <option value="Mezclados">Mezclados</option>
+              <option value="Organicos">Orgánicos</option>
             </select>
           </div>
         </div>
@@ -113,10 +122,10 @@
           <div class="field">
             <label for="planta_tipo">Tipo de planta</label>
             <select id="planta_tipo">
-              <option value="reciclaje">Reciclaje</option>
-              <option value="vertedero">Vertedero</option>
-              <option value="acopio">Acopio</option>
-              <option value="transferencia">Transferencia</option>
+              <option value="Reciclaje">Reciclaje</option>
+              <option value="Vertedero">Vertedero</option>
+              <option value="Acopio">Acopio</option>
+              <option value="Transferencia">Transferencia</option>
             </select>
           </div>
         </div>
@@ -124,34 +133,55 @@
         <div class="subfields" id="campos_flota" style="display:none;">
           <div class="field">
             <label for="flota_matricula">Matrícula</label>
-            <input type="text" id="flota_matricula" maxlength="7" placeholder="ABC1234">
+            <input type="text" id="flota_matricula" maxlength="7" placeholder="ABC1234" required>
           </div>
           <div class="field">
             <label for="flota_tipo_vehiculo">Tipo de vehículo</label>
             <select id="flota_tipo_vehiculo">
-              <option value="camion_trasero">Camión trasero</option>
-              <option value="camion_lateral">Camión lateral</option>
-              <option value="motocarro">Motocarro</option>
+              <option value="Camion_Trasero">Camión trasero</option>
+              <option value="Camion_Lateral">Camión lateral</option>
+              <option value="Motocarro">Motocarro</option>
             </select>
           </div>
           <div class="field">
             <label for="flota_res_recolector">Residuo recolector</label>
             <select id="flota_res_recolector">
-              <option value="reciclables">Reciclables</option>
-              <option value="mezclados">Mezclados</option>
-              <option value="organicos">Orgánicos</option>
+              <option value="Reciclables">Reciclables</option>
+              <option value="Mezclados">Mezclados</option>
+              <option value="Organicos">Orgánicos</option>
             </select>
           </div>
           <div class="field">
             <label for="flota_id_taller">ID taller asignado</label>
-            <input type="number" id="flota_id_taller">
+            <input type="number" id="flota_id_taller" min="1" required>
           </div>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn btn-primary" onclick="crearElemento()">Guardar elemento</button>
+          <button type="button" class="btn btn-primary" id="guardarElementoBtn" onclick="crearElemento()">Guardar elemento</button>
         </div>
       </form>
+    </div>
+  </section>
+
+  <section class="admin-section">
+    <div class="admin-section-head">
+      <div>
+        <h2>Maquinaria</h2>
+        <p>Alta, consulta, modificación y eliminación de maquinaria asociada a una planta.</p>
+      </div>
+    </div>
+    <div class="form-card">
+      <form id="formMaquinaria" class="form-grid">
+        <div class="field"><label for="maq_id">ID maquinaria</label><input type="number" id="maq_id" min="1" placeholder="Vacío para crear"></div><div class="field"><button type="button" class="btn btn-primary" onclick="consultarMaquinaria()">Consultar maquinaria</button></div>
+        <div class="field"><label for="maq_matricula">Matrícula</label><input type="text" id="maq_matricula" maxlength="7" required></div>
+        <div class="field"><label for="maq_estado">Estado</label><select id="maq_estado"><option value="Operable">Operable</option><option value="Req_mantenimiento">Requiere mantenimiento</option><option value="Inoperable">Inoperable</option><option value="En_mantenimiento">En mantenimiento</option></select></div>
+        <div class="field"><label for="maq_modelo">Modelo</label><input type="text" id="maq_modelo"></div>
+        <div class="field"><label for="maq_planta">ID planta</label><input type="number" id="maq_planta" min="1" required></div>
+        <div class="field"><label for="maq_tipo">Tipo</label><select id="maq_tipo"><option value="Chipeadoras">Chipeadoras</option><option value="Trituracion">Trituración</option><option value="Compostaje">Compostaje</option><option value="Harneado">Harneado</option><option value="Separacion">Separación</option></select></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Guardar maquinaria</button><button type="button" class="btn btn-danger-ghost" onclick="eliminarMaquinaria()">Eliminar por ID</button></div>
+      </form>
+      <p id="machineryMessage" role="status" aria-live="polite"></p>
     </div>
   </section>
 
@@ -159,345 +189,282 @@
     <div class="admin-section-head">
       <div>
         <h2>Usuarios del sistema</h2>
-        <p>Vecinos, camioneros, gestores de planta y administrativos.</p>
-      </div>
-      <button class="btn btn-primary" onclick="cargarUsuarios()">Actualizar</button>
-    </div>
-
-    <div class="panel">
-      <table id="tablaUsuarios">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Asignación</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="empty-row"><td colspan="6">Cargando usuarios…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="admin-section">
-    <div class="admin-section-head">
-      <div>
-        <h2>Crear usuario</h2>
-        <p>Registrá un nuevo usuario del sistema y su asignación.</p>
+        <p>La API actual permite registrar usuarios, pero no ofrece un endpoint para listarlos o eliminarlos.</p>
       </div>
     </div>
-
     <div class="form-card">
       <form id="formCrearUsuario" class="form-grid">
-        <div class="field">
-          <label for="us_nombre">Nombre</label>
-          <input type="text" id="us_nombre">
-        </div>
-
-        <div class="field">
-          <label for="us_email">Email</label>
-          <input type="email" id="us_email">
-        </div>
-
-        <div class="field">
-          <label for="us_password">Contraseña</label>
-          <input type="password" id="us_password">
-        </div>
-
-        <div class="field">
-          <label for="us_rol">Rol de usuario</label>
-          <select id="us_rol" onchange="cambiarCamposUsuario()">
-            <option value="vecino">Vecino</option>
-            <option value="camionero">Camionero</option>
-            <option value="gestor">Gestor de planta</option>
-            <option value="admin">Administrativo</option>
-          </select>
-        </div>
-
-        <div class="subfields" id="us_campo_gestor" style="display:none;">
-          <div class="field">
-            <label for="us_id_planta">ID planta asignada</label>
-            <input type="number" id="us_id_planta">
-          </div>
-        </div>
-
-        <div class="subfields" id="us_campo_camionero" style="display:none;">
-          <div class="field">
-            <label for="us_id_ruta">ID ruta asignada</label>
-            <input type="number" id="us_id_ruta">
-          </div>
-          <div class="field">
-            <label for="us_flota_asign">ID flota asignada</label>
-            <input type="number" id="us_flota_asign">
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-primary" onclick="crearUsuario()">Guardar usuario</button>
-        </div>
+        <div class="field"><label for="us_nombre">Nombre</label><input type="text" id="us_nombre" required></div>
+        <div class="field"><label for="us_email">Email</label><input type="email" id="us_email" required></div>
+        <div class="field"><label for="us_password">Contraseña</label><input type="password" id="us_password" minlength="6" required></div>
+        <div class="field"><label for="us_rol">Rol de usuario</label><select id="us_rol" onchange="cambiarCamposUsuario()"><option value="U_Vecino">Vecino</option><option value="U_Camionero">Camionero</option><option value="U_Gestor_De_Planta">Gestor de planta</option><option value="U_Administrativo">Administrativo</option></select></div>
+        <div class="subfields" id="us_campo_gestor" style="display:none"><div class="field"><label for="us_id_planta">ID planta asignada</label><input type="number" id="us_id_planta" min="1"></div></div>
+        <div class="subfields" id="us_campo_camionero" style="display:none"><div class="field"><label for="us_id_ruta">ID ruta asignada</label><input type="number" id="us_id_ruta" min="1"></div><div class="field"><label for="us_flota_asign">ID flota asignada</label><input type="number" id="us_flota_asign" min="1"></div></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Crear usuario</button></div>
       </form>
+      <p id="userMessage" role="status" aria-live="polite"></p>
     </div>
   </section>
-
 </main>
 
 <script>
-    const API_GESTION = '/Maxi-Prime/api/gestion.php';
-    const API_AUTH = '/Maxi-Prime/api/auth.php';
+const API_GESTION = '/api/gestion.php';
+const API_AUTH = '/api/auth.php';
+const ELEMENT_TYPES = {
+  contenedor: 'contenedor',
+  planta: 'planta',
+  flota: 'flota',
+  taller: 'taller'
+};
+const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const requestJson = async (url, options = {}) => {
+  const response = await fetch(url, {credentials:'same-origin', ...options});
+  const data = await response.json();
+  if (!response.ok || data.status !== 'success') throw new Error(data.message || 'La API rechazó la operación.');
+  return data;
+};
 
-    const ESTADO_BADGE = {
-      operable: 'verde',
-      req_asistencia: 'amarillo',
-      req_asistencia_inmediata: 'rojo'
-    };
-    const ROL_BADGE = {
-      admin: 'rojo',
-      gestor: 'amarillo',
-      camionero: 'verde',
-      vecino: 'neutro'
-    };
-    const ROL_LABEL = {
-      admin: 'Administrativo',
-      gestor: 'Gestor',
-      camionero: 'Camionero',
-      vecino: 'Vecino'
-    };
-
-    function badge(text, cls) {
-      return `<span class="badge ${cls || 'neutro'}">${text}</span>`;
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const session = await requestJson(`${API_AUTH}?action=check_session`);
+    if (!session.logged_in) {
+      window.location.href = 'login.html';
+      return;
     }
+    document.getElementById('sessionStatus').textContent = 'Sesión iniciada';
+  } catch (error) {
+    document.getElementById('sessionStatus').textContent = 'No se pudo validar la sesión';
+    window.location.href = 'login.html';
+  }
+});
 
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch(API_AUTH + '?action=check_session')
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'success' && data.logged_in) {
-            document.getElementById('sessionStatus').innerHTML = `<b>${data.user.Nombre}</b> · ${data.user.Rol}`;
-            cargarElementos();
-            cargarUsuarios();
-          } else {
-            alert('Debes iniciar sesión primero.');
-            window.location.href = 'login.html';
-          }
-        })
-        .catch(() => {
-          document.getElementById('sessionStatus').textContent = 'Modo local / sin sesión activa';
-          cargarElementos();
-          cargarUsuarios();
-        });
-    });
+async function cerrarSesion() {
+  try {
+    await requestJson(API_AUTH, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'logout'})});
+    window.location.href = 'login.html';
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
-    function cerrarSesion() {
-      fetch(API_AUTH, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'logout' })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        window.location.href = 'login.html';
-      });
-    }
+async function reiniciarSesion() {
+  alert('La API actual no ofrece una operación para reiniciar datos de sesión.');
+}
 
-    function reiniciarSesion() {
-      if (!confirm('¿Seguro que deseas borrar todos los datos temporales de la sesión?')) return;
-      fetch(API_GESTION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset_session' })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        cargarElementos();
-        cargarUsuarios();
-      });
-    }
+function cambiarCamposElemento() {
+  const tipo = document.getElementById('elem_tipo').value;
+  ['contenedor','planta','flota'].forEach(name => {
+    document.getElementById(`campos_${name}`).style.display = tipo === name ? 'grid' : 'none';
+  });
+  document.getElementById('cont_n_serie').required = tipo === 'contenedor';
+  document.getElementById('flota_matricula').required = tipo === 'flota';
+  document.getElementById('flota_id_taller').required = tipo === 'flota';
+}
 
-    function cambiarCamposElemento() {
-      const tipo = document.getElementById('elem_tipo').value;
-      document.getElementById('campos_contenedor').style.display = (tipo === 'contenedor') ? 'grid' : 'none';
-      document.getElementById('campos_planta').style.display = (tipo === 'planta') ? 'grid' : 'none';
-      document.getElementById('campos_flota').style.display = (tipo === 'flota') ? 'grid' : 'none';
-    }
+function cambiarCamposUsuario() {
+  const rol = document.getElementById('us_rol').value;
+  document.getElementById('us_campo_gestor').style.display = rol === 'U_Gestor_De_Planta' ? 'grid' : 'none';
+  document.getElementById('us_campo_camionero').style.display = rol === 'U_Camionero' ? 'grid' : 'none';
+  document.getElementById('us_id_planta').required = rol === 'U_Gestor_De_Planta';
+  document.getElementById('us_id_ruta').required = false;
+  document.getElementById('us_flota_asign').required = false;
+}
 
-    function cambiarCamposUsuario() {
-      const rol = document.getElementById('us_rol').value;
-      document.getElementById('us_campo_gestor').style.display = (rol === 'gestor') ? 'grid' : 'none';
-      document.getElementById('us_campo_camionero').style.display = (rol === 'camionero') ? 'grid' : 'none';
-    }
+function renderElement(item, type) {
+  const detail = type === 'contenedor' ? `Serie: ${item.N_Serie} · ${item.Tipo_Cont} · ${item.Tipo_Res}` : type === 'planta' ? `Planta: ${item.Tipo_Planta}` : type === 'flota' ? `Matrícula: ${item.Matricula} · ${item.Tipo_Vehiculo} · ${item.Res_Recolector}` : 'Taller';
+  const tbody = document.querySelector('#tablaElementos tbody');
+  tbody.innerHTML = `<tr><td>${esc(item.ID_Elemento)}</td><td>${esc(type)}</td><td>${esc(detail)}</td><td>${esc(item.Estado)}</td><td><button class="btn btn-primary" type="button" onclick="editarElemento('${type}',${Number(item.ID_Elemento)})">Editar</button> <button class="btn btn-danger-ghost" type="button" onclick="eliminarElemento('${type}',${Number(item.ID_Elemento)})">Borrar</button></td></tr>`;
+}
 
-    function cargarElementos() {
-      fetch(API_GESTION + '?action=list_elements')
-        .then(res => res.json())
-        .then(res => {
-          const tbody = document.querySelector('#tablaElementos tbody');
-          tbody.innerHTML = '';
-
-          if (res.status === 'success' && res.data.length > 0) {
-            res.data.forEach(item => {
-              let detalle = '-';
-              let estado = '-';
-
-              if (item.Tipo_Elemento === 'contenedor') {
-                detalle = `Serie: ${item.N_Serie || 'S/N'} (${item.Tipo_Cont})`;
-                estado = item.Estado_Contenedor;
-              } else if (item.Tipo_Elemento === 'planta') {
-                detalle = `Planta: ${item.Tipo_Planta}`;
-                estado = item.Estado_Planta;
-              } else if (item.Tipo_Elemento === 'flota') {
-                detalle = `Matrícula: ${item.Matricula || 'S/M'} (${item.Tipo_Vehiculo})`;
-                estado = item.Estado_Flota;
-              } else if (item.Tipo_Elemento === 'taller') {
-                detalle = 'Taller físico';
-                estado = item.Estado_Taller;
-              }
-
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td>${item.ID_Elemento}</td>
-                <td>${item.Tipo_Elemento}</td>
-                <td>${detalle}</td>
-                <td>${badge(estado, ESTADO_BADGE[estado])}</td>
-                <td>
-                  <button class="btn btn-danger-ghost" onclick="eliminarElemento(${item.ID_Elemento})">Borrar</button>
-                </td>
-              `;
-              tbody.appendChild(tr);
-            });
-          } else {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No hay elementos creados en la sesión.</td></tr>';
-          }
-        });
-    }
-
-    function crearElemento() {
-      const tipo = document.getElementById('elem_tipo').value;
-      const payload = {
-        action: 'add_element',
-        tipo_elemento: tipo,
-        ubicacion: document.getElementById('elem_ubicacion').value || null,
-        estado: document.getElementById('elem_estado').value
-      };
-
-      if (tipo === 'contenedor') {
-        payload.n_serie = document.getElementById('cont_n_serie').value;
-        payload.tipo_cont = document.getElementById('cont_tipo_cont').value;
-        payload.tipo_res = document.getElementById('cont_tipo_res').value;
-      } else if (tipo === 'planta') {
-        payload.tipo_planta = document.getElementById('planta_tipo').value;
-      } else if (tipo === 'flota') {
-        payload.matricula = document.getElementById('flota_matricula').value;
-        payload.tipo_vehiculo = document.getElementById('flota_tipo_vehiculo').value;
+async function consultarElemento() {
+  const id = Number(document.getElementById('buscarElementoId').value);
+  const tbody = document.querySelector('#tablaElementos tbody');
+  if (!Number.isInteger(id) || id < 1) {
+    tbody.innerHTML = '<tr><td colspan="5">Ingresá un ID válido.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="5">Consultando…</td></tr>';
+  for (const type of Object.values(ELEMENT_TYPES)) {
+    try {
+      const result = await requestJson(`${API_GESTION}?resource=${type}&id=${id}`);
+      if (result.data) {
+        renderElement(result.data, type);
+        return;
       }
-
-      fetch(API_GESTION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        if (data.status === 'success') cargarElementos();
-      });
+    } catch (error) {
     }
+  }
+  tbody.innerHTML = '<tr><td colspan="5">No se encontró un elemento de ese ID.</td></tr>';
+}
 
-    function eliminarElemento(id) {
-      if (!confirm(`¿Borrar elemento ID ${id}?`)) return;
-
-      fetch(API_GESTION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_element', id_elemento: id })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        if (data.status === 'success') cargarElementos();
-      });
+async function editarElemento(type, id) {
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=${type}&id=${id}`);
+    const item = result.data;
+    document.getElementById('elem_id').value = id;
+    document.getElementById('elem_tipo').value = type;
+    document.getElementById('elem_latitud').value = item.Latitud;
+    document.getElementById('elem_longitud').value = item.Longitud;
+    document.getElementById('elem_distrito').value = item.ID_Distrito;
+    document.getElementById('elem_estado').value = item.Estado;
+    cambiarCamposElemento();
+    if (type === 'contenedor') {
+      document.getElementById('cont_n_serie').value = item.N_Serie;
+      document.getElementById('cont_tipo_cont').value = item.Tipo_Cont;
+      document.getElementById('cont_tipo_res').value = item.Tipo_Res;
     }
-
-    function cargarUsuarios() {
-      fetch(API_GESTION + '?action=list_users')
-        .then(res => res.json())
-        .then(res => {
-          const tbody = document.querySelector('#tablaUsuarios tbody');
-          tbody.innerHTML = '';
-
-          if (res.status === 'success' && res.data.length > 0) {
-            res.data.forEach(us => {
-              let asig = '-';
-              if (us.Rol === 'gestor') asig = `Planta ID: ${us.ID_Planta || 'S/A'}`;
-              if (us.Rol === 'camionero') asig = `Ruta: ${us.ID_Ruta_Asign || 'S/A'}, Flota: ${us.Flota_Asign || 'S/A'}`;
-
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td>${us.ID_US}</td>
-                <td>${us.Nombre}</td>
-                <td>${us.Email}</td>
-                <td>${badge(ROL_LABEL[us.Rol] || us.Rol, ROL_BADGE[us.Rol])}</td>
-                <td>${asig}</td>
-                <td>
-                  <button class="btn btn-danger-ghost" onclick="eliminarUsuario(${us.ID_US})">Borrar</button>
-                </td>
-              `;
-              tbody.appendChild(tr);
-            });
-          } else {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No hay usuarios registrados en la sesión.</td></tr>';
-          }
-        });
+    if (type === 'planta') document.getElementById('planta_tipo').value = item.Tipo_Planta;
+    if (type === 'flota') {
+      document.getElementById('flota_matricula').value = item.Matricula;
+      document.getElementById('flota_res_recolector').value = item.Res_Recolector;
+      document.getElementById('flota_tipo_vehiculo').value = item.Tipo_Vehiculo;
+      document.getElementById('flota_id_taller').value = item.ID_Taller_Almacen;
     }
+    document.getElementById('guardarElementoBtn').textContent = 'Guardar cambios';
+    document.getElementById('formCrearElemento').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
-    function crearUsuario() {
-      const rol = document.getElementById('us_rol').value;
-      const payload = {
-        action: 'add_user',
-        nombre: document.getElementById('us_nombre').value,
-        email: document.getElementById('us_email').value,
-        password: document.getElementById('us_password').value,
-        rol: rol
-      };
+async function crearElemento() {
+  const form = document.getElementById('formCrearElemento');
+  if (!form.reportValidity()) return;
+  const type = document.getElementById('elem_tipo').value;
+  const payload = {
+    Latitud: Number(document.getElementById('elem_latitud').value),
+    Longitud: Number(document.getElementById('elem_longitud').value),
+    Estado: document.getElementById('elem_estado').value,
+    ID_Distrito: Number(document.getElementById('elem_distrito').value)
+  };
+  if (!Number.isFinite(payload.Latitud) || !Number.isFinite(payload.Longitud) || !Number.isInteger(payload.ID_Distrito) || payload.ID_Distrito < 1) {
+    alert('Revisá las coordenadas y el ID del distrito.');
+    return;
+  }
+  const editingId = document.getElementById('elem_id').value;
+  if (editingId) payload.ID_Elemento = Number(editingId);
+  if (type === 'contenedor') {
+    payload.N_Serie = document.getElementById('cont_n_serie').value.trim();
+    payload.Tipo_Cont = document.getElementById('cont_tipo_cont').value;
+    payload.Tipo_Res = document.getElementById('cont_tipo_res').value;
+  } else if (type === 'planta') {
+    payload.Tipo_Planta = document.getElementById('planta_tipo').value;
+  } else if (type === 'flota') {
+    payload.Matricula = document.getElementById('flota_matricula').value.trim();
+    payload.Res_Recolector = document.getElementById('flota_res_recolector').value;
+    payload.Tipo_Vehiculo = document.getElementById('flota_tipo_vehiculo').value;
+    payload.ID_Taller_Almacen = Number(document.getElementById('flota_id_taller').value);
+  }
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=${type}`, {method:editingId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    alert(result.message || (editingId ? 'Elemento actualizado.' : 'Elemento creado.'));
+    form.reset();
+    document.getElementById('guardarElementoBtn').textContent = 'Guardar elemento';
+    cambiarCamposElemento();
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
-      if (rol === 'gestor') {
-        payload.id_planta = document.getElementById('us_id_planta').value || null;
-      } else if (rol === 'camionero') {
-        payload.id_ruta = document.getElementById('us_id_ruta').value || null;
-        payload.flota_asign = document.getElementById('us_flota_asign').value || null;
-      }
+async function eliminarElemento(type, id) {
+  if (!confirm(`¿Borrar el elemento ${id}?`)) return;
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=${type}&id=${id}`, {method:'DELETE'});
+    alert(result.message || 'Elemento eliminado.');
+    document.querySelector('#tablaElementos tbody').innerHTML = '<tr><td colspan="5">Elemento eliminado.</td></tr>';
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
-      fetch(API_GESTION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        if (data.status === 'success') cargarUsuarios();
-      });
-    }
+async function consultarMaquinaria() {
+  const id = Number(document.getElementById('maq_id').value);
+  const message = document.getElementById('machineryMessage');
+  if (!Number.isInteger(id) || id < 1) {
+    message.textContent = 'Ingresá un ID válido.';
+    return;
+  }
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=maquinaria&id=${id}`);
+    const item = result.data;
+    document.getElementById('maq_matricula').value = item.Matricula || '';
+    document.getElementById('maq_estado').value = item.Estado;
+    document.getElementById('maq_modelo').value = item.Modelo || '';
+    document.getElementById('maq_planta').value = item.ID_Planta;
+    document.getElementById('maq_tipo').value = item.Tipo;
+    message.textContent = `Maquinaria ${id} cargada para modificar.`;
+  } catch (error) {
+    message.textContent = error.message;
+  }
+}
 
-    function eliminarUsuario(id) {
-      if (!confirm(`¿Borrar usuario ID ${id}?`)) return;
+document.getElementById('formMaquinaria').addEventListener('submit', async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const id = document.getElementById('maq_id').value;
+  const payload = {
+    Matricula:document.getElementById('maq_matricula').value.trim(),
+    Estado:document.getElementById('maq_estado').value,
+    Modelo:document.getElementById('maq_modelo').value.trim(),
+    ID_Planta:Number(document.getElementById('maq_planta').value),
+    Tipo:document.getElementById('maq_tipo').value
+  };
+  if (id) payload.ID_Maquinaria = Number(id);
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=maquinaria${id ? `&id=${id}` : ''}`, {method:id ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    document.getElementById('machineryMessage').textContent = result.message || (id ? 'Maquinaria actualizada.' : 'Maquinaria creada.');
+    if (!id) form.reset();
+  } catch (error) {
+    document.getElementById('machineryMessage').textContent = error.message;
+  }
+});
 
-      fetch(API_GESTION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_user', id_us: id })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message);
-        if (data.status === 'success') cargarUsuarios();
-      });
-    }
-  </script>
+async function eliminarMaquinaria() {
+  const id = Number(document.getElementById('maq_id').value);
+  if (!Number.isInteger(id) || id < 1) {
+    document.getElementById('machineryMessage').textContent = 'Ingresá el ID de la maquinaria.';
+    return;
+  }
+  if (!confirm(`¿Eliminar la maquinaria ${id}?`)) return;
+  try {
+    const result = await requestJson(`${API_GESTION}?resource=maquinaria&id=${id}`, {method:'DELETE'});
+    document.getElementById('machineryMessage').textContent = result.message || 'Maquinaria eliminada.';
+  } catch (error) {
+    document.getElementById('machineryMessage').textContent = error.message;
+  }
+}
+
+cambiarCamposElemento();
+cambiarCamposUsuario();
+
+document.getElementById('formCrearUsuario').addEventListener('submit', async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+  const tipo = document.getElementById('us_rol').value;
+  const payload = {
+    action:'register',
+    Nombre:document.getElementById('us_nombre').value.trim(),
+    Correo_Electronico:document.getElementById('us_email').value.trim(),
+    Contrasena:document.getElementById('us_password').value,
+    tipo
+  };
+  if (tipo === 'U_Gestor_De_Planta') payload.ID_Planta_Asig = Number(document.getElementById('us_id_planta').value);
+  if (tipo === 'U_Camionero') {
+    payload.ID_Ruta_Asig = document.getElementById('us_id_ruta').value ? Number(document.getElementById('us_id_ruta').value) : null;
+    payload.ID_Flota_Asig = document.getElementById('us_flota_asign').value ? Number(document.getElementById('us_flota_asign').value) : null;
+  }
+  try {
+    const result = await requestJson(API_AUTH, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    document.getElementById('userMessage').textContent = result.message || 'Usuario creado.';
+    form.reset();
+    cambiarCamposUsuario();
+  } catch (error) {
+    document.getElementById('userMessage').textContent = error.message;
+  }
+});
+</script>
+
 </body>
 </html>

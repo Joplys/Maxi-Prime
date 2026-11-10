@@ -1,115 +1,58 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Registrar cuenta · Maxi-bin</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="register.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrar cuenta · Maxi-bin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="register.css">
 </head>
 <body>
-  <div class="brand">
-    <div class="logo-box"></div>
-    Maxi-bin
-  </div>
-
-  <div class="card">
-    <h2>Registrá tu cuenta</h2>
-
-    <form id="registerForm">
-      <div class="field">
-        <label for="username">Nombre de usuario</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder="Tu usuario"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="tu@email.com"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          placeholder="••••••••"
-          required
-          minlength="6"
-        />
-      </div>
-
-      <button class="btn" type="submit">
-        Registrarse
-      </button>
-    </form>
-
-    <p class="link">
-      ¿Tenés una cuenta?
-      <a href="login.html">Hacé login</a>
-    </p>
-  </div>
-
-  <script>
-    const registerForm = document.getElementById('registerForm');
-
-    registerForm.addEventListener('submit', async function (event) {
-      event.preventDefault();
-
-      const username = document.getElementById('username').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      if (!username || !email || !password) {
-        alert('Por favor, completá todos los campos.');
-        return;
-      }
-
-      try {
-        const response = await fetch('/Maxi-Prime/api/auth.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'register',
-            username: username,
-            email: email,
-            password: password,
-
-            // El registro público siempre será de tipo vecino.
-            tipo: 'U_Vecino'
-          })
-        });
-
-        const data = await response.json();
-
-        alert(data.message);
-
-        if (data.status === 'success') {
-          window.location.href = 'login.html';
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Error de conexión con el servidor.');
-      }
+<div class="brand"><div class="logo-box"></div>Maxi-bin</div>
+<div class="card">
+<h2>Registrá tu cuenta</h2>
+<form id="registerForm">
+<div class="field"><label for="username">Nombre de usuario</label><input type="text" id="username" name="username" placeholder="Tu usuario" autocomplete="name" required></div>
+<div class="field"><label for="email">Email</label><input type="email" id="email" name="email" placeholder="tu@email.com" autocomplete="email" required></div>
+<div class="field"><label for="password">Contraseña</label><input type="password" id="password" name="password" placeholder="••••••••" autocomplete="new-password" required minlength="6"></div>
+<button class="btn" id="registerButton" type="submit">Registrarse</button>
+</form>
+<p class="link">¿Tenés una cuenta? <a href="login.html">Hacé login</a></p>
+<p id="registerMessage" role="status" aria-live="polite"></p>
+</div>
+<script>
+const registerForm = document.getElementById('registerForm');
+const registerMessage = document.getElementById('registerMessage');
+registerForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = document.getElementById('registerButton');
+  button.disabled = true;
+  registerMessage.textContent = 'Registrando…';
+  try {
+    const response = await fetch('/api/auth.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'register',
+        Nombre: document.getElementById('username').value.trim(),
+        Correo_Electronico: document.getElementById('email').value.trim(),
+        Contrasena: document.getElementById('password').value,
+        tipo: 'U_Vecino'
+      })
     });
-  </script>
+    const data = await response.json();
+    if (!response.ok || data.status !== 'success') throw new Error(data.message || 'No se pudo completar el registro.');
+    registerMessage.textContent = 'Cuenta de vecino creada. Redirigiendo al login…';
+    registerForm.reset();
+    window.location.href = 'login.html';
+  } catch (error) {
+    registerMessage.textContent = error.message || 'Error de conexión con el servidor.';
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
 </body>
 </html>
