@@ -1,194 +1,137 @@
+const API_GESTION = '/api/gestion.php';
+const ESTADO_LABEL = {
+  'Disponible': 'Disponible',
+  'Req. Asistencia': 'Requiere asistencia',
+  'Req. Asistencia Inmediata': 'Requiere asistencia inmediata'
+};
+const map = L.map('map', {zoomControl:true}).setView([-34.9075, -56.1850], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(map);
+const markers = new Map();
+const containers = new Map();
+const track = document.getElementById('panelTrack');
+const dots = document.querySelectorAll('.dot');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const elementEmpty = document.getElementById('elementEmpty');
+const elementFilled = document.getElementById('elementFilled');
+const elType = document.getElementById('elType');
+const elSubtype = document.getElementById('elSubtype');
+const elInfo = document.getElementById('elInfo');
+const elIcon = document.getElementById('elIcon');
+let selectedContainer = null;
+let currentView = 0;
 
-const CONTAINERS = [
-  {
-    id: "c1",
-    lat: -34.9058, lng: -56.1913,
-    tipo: "Contenedor de residuos generales",
-    subtipo: "Zona Centro · Ciudad Vieja",
-    estado: "amarillo",
-    info: "Nivel de llenado: 65%. Última recolección hace 2 días. Sin incidencias reportadas en la última semana."
-  },
-  {
-    id: "c2",
-    lat: -34.9155, lng: -56.1500,
-    tipo: "Contenedor de reciclables",
-    subtipo: "Zona Pocitos · Rambla",
-    estado: "verde",
-    info: "Nivel de llenado: 20%. Recolección al día. Sensor de tapa funcionando correctamente."
-  },
-  {
-    id: "c3",
-    lat: -34.9075, lng: -56.2078,
-    tipo: "Contenedor de residuos generales",
-    subtipo: "Zona Ciudad Vieja · Peatonal Sarandí",
-    estado: "rojo",
-    info: "Nivel de llenado: 95%. Recolección atrasada. Hay un reporte de incidencia activo para este contenedor."
-  }
-];
-
-const REPORTS = [
-  {
-    asunto: "Contenedor desbordado",
-    elemento: "Contenedor de residuos generales — Peatonal Sarandí",
-    estado: "Pendiente",
-    fecha: "22/07/2026",
-    cuerpo: "El contenedor está completamente lleno desde hace tres días y los residuos se acumulan alrededor en la vereda. Se solicita recolección urgente antes del fin de semana."
-  },
-  {
-    asunto: "Tapa rota",
-    elemento: "Contenedor de reciclables — Rambla Pocitos",
-    estado: "En revisión",
-    fecha: "19/07/2026",
-    cuerpo: "La tapa del contenedor está quebrada y no cierra bien, lo que permite que entre agua de lluvia y se mojen los reciclables."
-  },
-  {
-    asunto: "Mal olor persistente",
-    elemento: "Contenedor de residuos generales — Ciudad Vieja",
-    estado: "Resuelto",
-    fecha: "14/07/2026",
-    cuerpo: "Vecinos reportan mal olor constante en la esquina. Se sugiere revisar la frecuencia de recolección en la zona."
-  },
-  {
-    asunto: "Contenedor volcado por viento",
-    elemento: "Contenedor de reciclables — Rambla Pocitos",
-    estado: "Resuelto",
-    fecha: "10/07/2026",
-    cuerpo: "El contenedor se volcó durante la tormenta del fin de semana. Ya fue reubicado por el personal municipal."
-  }
-];
-
-const ESTADO_LABEL = { verde: "Correcto", amarillo: "Atención", rojo: "Urgente" };
-
-
-const map = L.map("map", { zoomControl: true }).setView([-34.9075, -56.1850], 13);
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: '&copy; OpenStreetMap',
-  maxZoom: 19
-}).addTo(map);
-
-function pinIcon(estado) {
-  return L.divIcon({
-    className: "",
-    html: `<div class="container-pin ${estado}"></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 22]
-  });
+async function apiGetContainer(id) {
+  const response = await fetch(`${API_GESTION}?resource=contenedor&id=${encodeURIComponent(id)}`, {credentials:'same-origin'});
+  const data = await response.json();
+  if (!response.ok || data.status !== 'success' || !data.data) throw new Error(data.message || 'Contenedor no encontrado');
+  return data.data;
 }
 
-CONTAINERS.forEach(c => {
-  const marker = L.marker([c.lat, c.lng], { icon: pinIcon(c.estado) }).addTo(map);
-  marker.bindPopup(`<b>${c.tipo}</b><br>${c.subtipo}`);
-  marker.on("click", () => showElement(c));
-});
-
-
-const track = document.getElementById("panelTrack");
-const dots = document.querySelectorAll(".dot");
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-let currentView = 0;
+function pinIcon(state) {
+  const color = state === 'Disponible' ? 'verde' : state === 'Req. Asistencia' ? 'amarillo' : 'rojo';
+  return L.divIcon({className:'', html:`<div class="container-pin ${color}"></div>`, iconSize:[22,22], iconAnchor:[11,22]});
+}
 
 function setView(index) {
   currentView = Math.max(0, Math.min(1, index));
   track.style.transform = `translateX(-${currentView * 50}%)`;
-  dots.forEach((d, i) => d.classList.toggle("active", i === currentView));
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === currentView));
   prevBtn.disabled = currentView === 0;
   nextBtn.disabled = currentView === 1;
 }
-prevBtn.addEventListener("click", () => setView(currentView - 1));
-nextBtn.addEventListener("click", () => setView(currentView + 1));
-setView(0);
-
-
-const elementEmpty = document.getElementById("elementEmpty");
-const elementFilled = document.getElementById("elementFilled");
-const elType = document.getElementById("elType");
-const elSubtype = document.getElementById("elSubtype");
-const elInfo = document.getElementById("elInfo");
-const elIcon = document.getElementById("elIcon");
-const reportBtn = document.getElementById("reportBtn");
-
-let selectedContainer = null;
+prevBtn.addEventListener('click', () => setView(currentView - 1));
+nextBtn.addEventListener('click', () => setView(currentView + 1));
 
 function showElement(container) {
   selectedContainer = container;
   elementEmpty.hidden = true;
   elementFilled.hidden = false;
-  elType.textContent = container.tipo;
-  elSubtype.textContent = container.subtipo;
-  elInfo.textContent = `${ESTADO_LABEL[container.estado]} — ${container.info}`;
-  elIcon.className = "element-icon";
-  elIcon.style.color = { verde: "#4C9A6A", amarillo: "#E3AE3F", rojo: "#D1583F" }[container.estado];
+  elType.textContent = `Contenedor ${container.N_Serie || `#${container.ID_Elemento}`}`;
+  elSubtype.textContent = `${container.Tipo_Cont || 'Tipo no informado'} · ${container.Tipo_Res || 'Residuo no informado'}`;
+  elInfo.textContent = ESTADO_LABEL[container.Estado] || container.Estado || 'Estado no informado';
+  elIcon.className = 'element-icon';
+  elIcon.style.color = container.Estado === 'Disponible' ? '#4C9A6A' : container.Estado === 'Req. Asistencia' ? '#E3AE3F' : '#D1583F';
   setView(1);
 }
 
-
-const inboxList = document.getElementById("inboxList");
-
-REPORTS.forEach((r, i) => {
-  const li = document.createElement("li");
-  li.className = "inbox-item";
-  const chip = r.estado === "Resuelto" ? "verde" : (r.estado === "En revisión" ? "amarillo" : "rojo");
-  li.innerHTML = `
-    <div class="inbox-item-top">
-      <span class="status-chip ${chip}"></span>
-      <span class="inbox-item-subject">${r.asunto}</span>
-    </div>
-    <p class="inbox-item-preview">${r.cuerpo}</p>
-  `;
-  li.addEventListener("click", () => openInforme(r));
-  inboxList.appendChild(li);
-});
-
-
-function openModal(id) { document.getElementById(id).classList.add("open"); }
-function closeModal(id) { document.getElementById(id).classList.remove("open"); }
-
-document.querySelectorAll("[data-close]").forEach(btn => {
-  btn.addEventListener("click", () => closeModal(btn.dataset.close));
-});
-document.querySelectorAll(".modal-overlay").forEach(overlay => {
-  overlay.addEventListener("click", e => {
-    if (e.target === overlay) closeModal(overlay.id);
+function addContainer(container) {
+  const id = Number(container.ID_Elemento);
+  const lat = Number(container.Latitud);
+  const lng = Number(container.Longitud);
+  if (!Number.isFinite(id) || !Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  containers.set(id, container);
+  if (markers.has(id)) map.removeLayer(markers.get(id));
+  const marker = L.marker([lat, lng], {icon:pinIcon(container.Estado)}).addTo(map);
+  marker.bindPopup(`<strong>${String(container.N_Serie || `Contenedor ${id}`).replace(/[&<>"']/g, '')}</strong><br>${String(container.Tipo_Res || '').replace(/[&<>"']/g, '')}<br>${String(container.Estado || '').replace(/[&<>"']/g, '')}`);
+  marker.on('click', () => showElement(container));
+  markers.set(id, marker);
+  const li = document.createElement('li');
+  li.className = 'inbox-item';
+  const title = document.createElement('span');
+  title.className = 'inbox-item-subject';
+  title.textContent = `${container.N_Serie || `Contenedor ${id}`} · ${container.Tipo_Res || 'Residuo no informado'}`;
+  const detail = document.createElement('p');
+  detail.className = 'inbox-item-preview';
+  detail.textContent = ESTADO_LABEL[container.Estado] || container.Estado || 'Estado no informado';
+  li.append(title, detail);
+  li.addEventListener('click', () => {
+    showElement(container);
+    map.setView([lat, lng], 16);
+    marker.openPopup();
   });
-});
-
-function openInforme(r) {
-  document.getElementById("informeAsunto").textContent = r.asunto;
-  document.getElementById("informeElemento").textContent = `Elemento afectado: ${r.elemento}`;
-  document.getElementById("informeEstado").textContent = `Estado: ${r.estado}`;
-  document.getElementById("informeFecha").textContent = r.fecha;
-  document.getElementById("informeCuerpo").textContent = r.cuerpo;
-  openModal("informeModal");
+  document.getElementById('inboxList').appendChild(li);
+  return true;
 }
 
-const reportForm = document.getElementById("reportForm");
-const reportSuccess = document.getElementById("reportSuccess");
-const evidenceBtn = document.getElementById("evidenceBtn");
-const evidenceInput = document.getElementById("evidenceInput");
-const evidenceName = document.getElementById("evidenceName");
+async function loadContainer(id) {
+  const status = document.getElementById('containerStatus');
+  status.textContent = `Consultando contenedor ${id}…`;
+  try {
+    const container = await apiGetContainer(id);
+    if (addContainer(container)) {
+      status.textContent = `${containers.size} contenedor(es) cargado(s).`;
+      map.setView([Number(container.Latitud), Number(container.Longitud)], 16);
+      showElement(container);
+    }
+  } catch (error) {
+    status.textContent = error.message;
+  }
+}
 
-reportBtn.addEventListener("click", () => {
-  if (!selectedContainer) return;
-  const today = new Date().toLocaleDateString("es-UY");
-  document.getElementById("reportAsunto").textContent = selectedContainer.tipo;
-  document.getElementById("reportElemento").textContent = `Elemento afectado: ${selectedContainer.subtipo}`;
-  document.getElementById("reportFecha").textContent = today;
-  reportForm.hidden = false;
-  reportSuccess.hidden = true;
-  reportForm.reset();
-  evidenceName.textContent = "";
-  openModal("reportModal");
+document.getElementById('loadContainerBtn').addEventListener('click', () => {
+  const id = Number(document.getElementById('containerIdInput').value);
+  if (!Number.isInteger(id) || id < 1) {
+    document.getElementById('containerStatus').textContent = 'Ingresá un ID válido.';
+    return;
+  }
+  loadContainer(id);
+});
+document.getElementById('containerIdInput').addEventListener('keydown', event => {
+  if (event.key === 'Enter') document.getElementById('loadContainerBtn').click();
+});
+document.getElementById('reportBtn').addEventListener('click', () => {
+  alert('La API actual no incluye un endpoint para crear incidencias.');
 });
 
-evidenceBtn.addEventListener("click", () => evidenceInput.click());
-evidenceInput.addEventListener("change", () => {
-  evidenceName.textContent = evidenceInput.files[0]?.name || "";
-});
+async function checkSession() {
+  const response = await fetch('/api/auth.php?action=check_session', {credentials:'same-origin'});
+  const data = await response.json();
+  if (!response.ok || data.status !== 'success' || !data.logged_in) {
+    window.location.href = '../login.html';
+    return false;
+  }
+  return true;
+}
 
-reportForm.addEventListener("submit", e => {
-  e.preventDefault();
-  reportForm.hidden = true;
-  reportSuccess.hidden = false;
-});
+async function initializeMap() {
+  setView(0);
+  try {
+    if (!await checkSession()) return;
+    document.getElementById('containerStatus').textContent = 'La API permite consultar contenedores por ID. Ingresá un ID para ubicarlo en el mapa.';
+  } catch (error) {
+    document.getElementById('containerStatus').textContent = 'No se pudo validar la sesión.';
+    window.location.href = '../login.html';
+  }
+}
+initializeMap();

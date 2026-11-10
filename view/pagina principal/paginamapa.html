@@ -30,8 +30,9 @@
           <div class="panel-track" id="panelTrack">
 
             <section class="panel-view" data-view="inbox">
-              <h2>Bandeja de entrada</h2>
-              <p class="panel-sub">Informes enviados sobre los contenedores</p>
+              <h2>Contenedores</h2>
+              <p class="panel-sub" id="containerStatus">Consultando contenedores disponibles…</p>
+              <div class="field"><label for="containerIdInput">Consultar por ID</label><input id="containerIdInput" type="number" min="1" placeholder="ID del contenedor"><button class="btn btn-report" id="loadContainerBtn" type="button">Consultar</button></div>
               <ul class="inbox-list" id="inboxList"></ul>
             </section>
 
@@ -55,7 +56,7 @@
                     <span class="element-info-label">Estado</span>
                     <p id="elInfo">—</p>
                   </div>
-                  <button class="btn btn-report" id="reportBtn">Reportar incidencia</button>
+                  <button class="btn btn-report" id="reportBtn" type="button">Reportar incidencia</button>
                 </div>
               </div>
             </section>
@@ -84,39 +85,6 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="reportModal">
-  <div class="modal">
-    <button class="modal-close" data-close="reportModal">×</button>
-    <div class="modal-eyebrow">Formulario de incidencia</div>
-    <h3 id="reportAsunto">Asunto</h3>
-    <div class="modal-meta">
-      <span id="reportElemento">Elemento afectado: —</span>
-      <span id="reportFecha">DD/MM/AAAA</span>
-    </div>
-
-    <form id="reportForm">
-      <label class="field">
-        <span class="field-label">Informe</span>
-        <textarea id="reportTextarea" placeholder="Describí lo sucedido…" required></textarea>
-      </label>
-
-      <label class="field">
-        <span class="field-label">Evidencia</span>
-        <span class="field-hint">Adjuntá una foto o video como prueba</span>
-        <input type="file" id="evidenceInput" accept="image/*,video/*" hidden>
-        <button type="button" class="btn btn-evidence" id="evidenceBtn">Agregar imagen</button>
-        <span class="evidence-name" id="evidenceName"></span>
-      </label>
-
-      <button type="submit" class="btn btn-submit">Enviar reporte</button>
-    </form>
-
-    <div class="report-success" id="reportSuccess" hidden>
-      <span class="element-empty-icon">✓</span>
-      Reporte enviado. Gracias por avisar.
-    </div>
-  </div>
-</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="app.js"></script>
